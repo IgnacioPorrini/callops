@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(powershell -Command \"Expand-Archive -Path 'queue-tab-launcher.zip' -DestinationPath 'qtl-extracted' -Force\")",
+      "Bash(cp qtl-config-default.json qtl-extracted/queue-tab-launcher/qtl-config-default.json)",
+      "Bash(powershell -Command \"Remove-Item -Path 'queue-tab-launcher.zip' -Force; Compress-Archive -Path 'qtl-extracted/queue-tab-launcher' -DestinationPath 'queue-tab-launcher.zip'\")",
+      "Bash(ls \"C:\\\\Users\\\\INVITADE\\\\OneDrive\\\\Documentos\\\\Desarrollo\\\\callOps\\\\\" --name)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git --version)",
+      "Bash(git config *)",
+      "Bash(git init *)"
+    ]
+  }
+}

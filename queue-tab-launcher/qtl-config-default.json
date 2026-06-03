@@ -1,0 +1,37 @@
+{
+  "_comment": "Archivo de configuración — reemplazá los valores con los reales",
+  "selector": ".queue-name",
+
+  "_call_notes_note": "call_notes_url: URL de call-notes.html. QTL siempre la inyecta o abre automáticamente en cada llamada, sin necesidad de incluirla en los tabs de cada cola.",
+  "call_notes_url": "file:///C:/ruta/a/queue-tab-launcher/call-notes.html",
+
+  "queues": [
+    {
+      "name": "Cola Ventas",
+      "campaign": "VENTAS_Q1",
+      "tabs": [
+        { "url": "https://www.google.com/search?q=cola+ventas+tab1", "title": "Sistema de gestión", "active": true },
+        { "url": "https://www.google.com/search?q=cola+ventas+tab2", "title": "Campaña Ventas",      "active": false },
+        { "url": "https://www.google.com/search?q=cola+ventas+tab3", "title": "CRM Cliente",         "active": false }
+      ]
+    },
+    {
+      "name": "Cola Soporte",
+      "campaign": "SOPORTE_GENERAL",
+      "tabs": [
+        { "url": "https://www.google.com/search?q=cola+soporte+tab1", "title": "Sistema de gestión", "active": true },
+        { "url": "https://www.google.com/search?q=cola+soporte+tab2", "title": "Campaña Soporte",    "active": false },
+        { "url": "https://www.google.com/search?q=cola+soporte+tab3", "title": "Tickets",            "active": false }
+      ]
+    },
+    {
+      "name": "Cola Cobranzas",
+      "campaign": "COBRANZAS_Q1",
+      "tabs": [
+        { "url": "https://www.google.com/search?q=cola+cobranzas+tab1", "title": "Sistema de gestión", "active": true },
+        { "url": "https://www.google.com/search?q=cola+cobranzas+tab2", "title": "Campaña Cobranzas",  "active": false },
+        { "url": "https://www.google.com/search?q=cola+cobranzas+tab3", "title": "Deudas",             "active": false }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+# Backups de versiones anteriores
+queue-tab-launcher-v*/
+call-notes-v*.html
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Node
+node_modules/
+
+# VS Code
+.vscode/
+
+# Configs con datos reales (usar el default como plantilla)
+qtl-config (1).json
+qtl-config-default - id.json

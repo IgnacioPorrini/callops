@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Queue Tab Launcher</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    :root {
+      --bg:      #0a0a0f;
+      --surface: #12121a;
+      --surface2:#1c1c28;
+      --border:  #2a2a3d;
+      --accent:  #ff4d6d;
+      --accent2: #7b61ff;
+      --text:    #e8e8f0;
+      --muted:   #6b6b85;
+      --success: #00d68f;
+      --warn:    #ffaa00;
+      --mono: "Space Mono", monospace;
+      --sans: "Syne", sans-serif;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      width: 420px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 13px;
+      overflow-x: hidden;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 13px 20px 11px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+    }
+
+    .logo {
+      width: 30px; height: 30px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--mono);
+      font-weight: 700;
+      font-size: 11px;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    .header-text h1 {
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: -0.2px;
+      color: var(--text);
+    }
+
+    .header-text p {
+      font-size: 10px;
+      color: var(--muted);
+      font-family: var(--mono);
+      margin-top: 1px;
+    }
+
+    .status-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--muted);
+      margin-left: auto;
+      flex-shrink: 0;
+      transition: background 0.3s;
+    }
+
+    .status-dot.active {
+      background: var(--success);
+      animation: pulse 2s infinite;
+    }
+
+    .status-dot.error { background: var(--accent); }
+
+    @keyframes pulse {
+      0%,100% { box-shadow: 0 0 0 0 rgba(0,214,143,0.4); }
+      50%      { box-shadow: 0 0 0 5px rgba(0,214,143,0); }
+    }
+
+    /* ── Body ── */
+    .body {
+      padding: 14px 18px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 13px;
+    }
+
+    /* ── View containers ── */
+    .view {
+      display: flex;
+      flex-direction: column;
+      gap: 13px;
+    }
+
+    /* ── Section label ── */
+    .section-label {
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    /* ── Toggle sections ── */
+    .toggle-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .toggle-header {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 12px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      font-family: var(--sans);
+      transition: background 0.15s;
+      user-select: none;
+    }
+    .toggle-header:hover { background: var(--surface2); }
+    .toggle-title {
+      font-family: var(--mono);
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+    .toggle-badge {
+      font-family: var(--mono);
+      font-size: 9px;
+      color: var(--muted);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      padding: 1px 6px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+    .toggle-hint {
+      flex: 1;
+      font-family: var(--mono);
+      font-size: 9px;
+      color: var(--accent2);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      text-align: right;
+    }
+    .toggle-hint.empty { color: var(--muted); font-style: italic; }
+    .toggle-chevron {
+      font-size: 11px;
+      color: var(--muted);
+      flex-shrink: 0;
+      transition: transform 0.2s;
+      display: inline-block;
+      line-height: 1;
+    }
+    .toggle-chevron.open { transform: rotate(180deg); }
+    .toggle-body-inner {
+      padding: 10px 10px 10px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    /* ── Status card (setup view) ── */
+    .status-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 11px 13px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .status-icon { font-size: 15px; line-height: 1; flex-shrink: 0; margin-top: 1px; }
+
+    .status-info strong {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 3px;
+    }
+
+    .status-info p { font-size: 11px; color: var(--muted); line-height: 1.4; }
+
+    /* ── Drop zone ── */
+    .drop-zone {
+      border: 1.5px dashed var(--border);
+      border-radius: 10px;
+      padding: 18px 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+      background: var(--surface);
+    }
+
+    .drop-zone:hover,
+    .drop-zone.dragover {
+      border-color: var(--accent2);
+      background: rgba(123,97,255,0.05);
+    }
+
+    .drop-zone input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%; height: 100%;
+    }
+
+    .drop-icon { font-size: 20px; margin-bottom: 7px; display: block; }
+
+    .drop-zone p { font-size: 11px; color: var(--muted); line-height: 1.5; }
+    .drop-zone p strong { color: var(--accent2); }
+    .drop-zone p small {
+      display: block;
+      margin-top: 3px;
+      font-family: var(--mono);
+      font-size: 9px;
+      color: var(--border);
+    }
+
+    /* ── Template section ── */
+    .template-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 7px;
+    }
+
+    .template-btn {
+      padding: 9px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.15s;
+      color: var(--text);
+    }
+
+    .template-btn:hover {
+      border-color: var(--accent2);
+      background: rgba(123,97,255,0.07);
+    }
+
+    .template-btn span { display: block; font-size: 11px; font-weight: 600; margin-bottom: 2px; }
+    .template-btn small { font-size: 10px; color: var(--muted); font-family: var(--mono); }
+
+    /* ── Queue search ── */
+    .queue-search-wrap {
+      position: relative;
+    }
+    .queue-search-input {
+      width: 100%;
+      padding: 7px 28px 7px 28px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 10px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .queue-search-input:focus { border-color: var(--accent2); }
+    .queue-search-input::placeholder { color: var(--muted); }
+    .queue-search-icon {
+      position: absolute;
+      left: 9px; top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-size: 11px;
+      pointer-events: none;
+      line-height: 1;
+    }
+    .queue-search-clear {
+      position: absolute;
+      right: 7px; top: 50%;
+      transform: translateY(-50%);
+      background: none; border: none;
+      color: var(--muted);
+      font-size: 10px;
+      cursor: pointer;
+      padding: 2px;
+      line-height: 1;
+      display: none;
+      font-family: var(--mono);
+    }
+    .queue-search-clear:hover { color: var(--accent); }
+    .queue-search-empty {
+      display: none;
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--muted);
+      text-align: center;
+      padding: 10px 0 4px;
+    }
+
+    /* ── Queue launch buttons ── */
+    .queue-btn-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 180px;
+      overflow-y: auto;
+      padding-right: 2px;
+    }
+
+    .queue-launch-btn {
+      width: 100%;
+      padding: 9px 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.15s;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-family: var(--sans);
+    }
+
+    .queue-launch-btn:hover {
+      border-color: var(--accent2);
+      background: rgba(123,97,255,0.07);
+    }
+
+    .queue-launch-btn:active { transform: scale(0.99); }
+    .queue-launch-btn-name { font-size: 12px; font-weight: 600; }
+    .queue-launch-btn-meta { font-size: 10px; color: var(--muted); font-family: var(--mono); margin-top: 2px; }
+    .queue-launch-btn-arrow { color: var(--accent2); font-size: 13px; flex-shrink: 0; margin-left: 8px; }
+
+    /* ── Op toolbar ── */
+    .op-toolbar {
+      display: flex;
+      gap: 6px;
+    }
+
+    .op-btn {
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--muted);
+      font-family: var(--sans);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+      letter-spacing: 0.02em;
+    }
+
+    .op-btn:hover { color: var(--text); border-color: var(--muted); }
+    .op-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .op-btn-notes {
+      flex: 2;
+      color: var(--accent2);
+      border-color: rgba(123,97,255,0.3);
+      background: rgba(123,97,255,0.05);
+    }
+    .op-btn-notes:hover {
+      background: rgba(123,97,255,0.12);
+      border-color: var(--accent2);
+      color: var(--accent2);
+    }
+
+    .op-btn-verify { flex: 1.5; }
+
+    .op-btn-icon {
+      flex: 0 0 36px;
+      padding: 8px 0;
+      text-align: center;
+    }
+
+    .op-btn-clear:hover {
+      color: var(--accent);
+      border-color: rgba(255,77,109,0.3);
+    }
+
+    /* ── Log ── */
+    .log-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 11px;
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--muted);
+      max-height: 76px;
+      overflow-y: auto;
+      line-height: 1.6;
+    }
+
+    .log-box .log-line  { display: block; }
+    .log-box .log-ok    { color: var(--success); }
+    .log-box .log-err   { color: var(--accent); }
+    .log-box .log-warn  { color: var(--warn); }
+
+    /* ── Toast ── */
+    #toast {
+      position: fixed;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 7px 14px;
+      font-size: 11px;
+      color: var(--text);
+      opacity: 0;
+      transition: all 0.25s;
+      pointer-events: none;
+      white-space: nowrap;
+      z-index: 999;
+    }
+
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    #toast.ok  { border-color: var(--success); color: var(--success); }
+    #toast.err { border-color: var(--accent);  color: var(--accent);  }
+
+    /* ── Warning card ── */
+    .warn-card {
+      background: rgba(255,170,0,0.06);
+      border: 1px solid rgba(255,170,0,0.25);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 11px;
+      color: var(--warn);
+      line-height: 1.5;
+      display: none;
+    }
+    .warn-card.show { display: block; }
+    .warn-card strong { display: block; margin-bottom: 4px; font-size: 11px; }
+    .warn-card a {
+      color: var(--accent2);
+      text-decoration: none;
+      font-family: var(--mono);
+      font-size: 10px;
+      display: inline-block;
+      margin-top: 4px;
+      cursor: pointer;
+    }
+    .warn-card a:hover { text-decoration: underline; }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 3px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    /* ── Credit ── */
+    .footer-credit {
+      text-align: center;
+      padding: 4px 0 2px;
+    }
+    .footer-credit a {
+      font-family: var(--mono);
+      font-size: 9px;
+      color: var(--muted);
+      text-decoration: none;
+      letter-spacing: 0.06em;
+      opacity: 0.5;
+      transition: all 0.15s;
+    }
+    .footer-credit a:hover { opacity: 1; color: var(--accent2); }
+
+    /* ── Call Notes URL row ── */
+    .cn-row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 8px 11px;
+    }
+    .cn-top {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .cn-input {
+      width: 100%;
+      padding: 5px 8px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 9px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .cn-input:focus { border-color: var(--accent2); }
+    .cn-input::placeholder { color: var(--muted); }
+
+    /* ── Selector picker rows ── */
+    .sel-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .sel-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 11px;
+      border-bottom: 1px solid var(--border);
+    }
+    .sel-row:last-child { border-bottom: none; }
+    .sel-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--border);
+      flex-shrink: 0;
+      transition: all 0.3s;
+    }
+    .sel-dot.set-queue { background: var(--accent);  box-shadow: 0 0 5px rgba(255,77,109,0.5); }
+    .sel-dot.set-phone { background: var(--accent2); box-shadow: 0 0 5px rgba(123,97,255,0.5); }
+    .sel-dot.set-name  { background: var(--success); box-shadow: 0 0 5px rgba(0,214,143,0.5); }
+    .sel-dot.picking   { animation: blink 0.7s ease-in-out infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+    .sel-info { flex: 1; min-width: 0; }
+    .sel-label {
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .sel-value {
+      font-family: var(--mono);
+      font-size: 9px;
+      color: var(--accent2);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 2px;
+    }
+    .sel-value.empty { color: var(--muted); font-style: italic; }
+    .sel-cap-btn {
+      padding: 4px 8px;
+      border-radius: 5px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 9px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+      flex-shrink: 0;
+      letter-spacing: 0.02em;
+    }
+    .sel-cap-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+    .sel-cap-btn.picking { background: rgba(255,170,0,0.08); border-color: rgba(255,170,0,0.4); color: var(--warn); }
+    .sel-clear-btn {
+      width: 20px; height: 20px;
+      display: flex; align-items: center; justify-content: center;
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 4px;
+      color: var(--muted);
+      font-size: 9px;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all 0.15s;
+      padding: 0;
+      font-family: var(--mono);
+    }
+    .sel-clear-btn:hover { color: var(--accent); border-color: rgba(255,77,109,0.3); }
+    .sel-clear-btn:disabled { opacity: 0.2; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="logo">QL</div>
+    <div class="header-text">
+      <h1>Queue Tab Launcher</h1>
+      <p>Contact Center → Auto-tabs</p>
+    </div>
+    <div class="status-dot" id="statusDot"></div>
+  </div>
+
+  <div class="body">
+
+    <!-- ── VISTA OPERACIONAL (config cargada) ── -->
+    <div id="opView" class="view" style="display:none">
+
+      <!-- ① Abrir cola — expandida por defecto -->
+      <div class="toggle-section">
+        <button class="toggle-header" id="hdrQueues">
+          <span class="toggle-title">Abrir cola</span>
+          <span class="toggle-badge" id="queueBadge"></span>
+          <span class="toggle-chevron open" id="chevQueues">▾</span>
+        </button>
+        <div id="bodyQueues">
+          <div class="toggle-body-inner">
+            <div class="queue-search-wrap">
+              <span class="queue-search-icon">⌕</span>
+              <input
+                type="text"
+                id="queueSearch"
+                class="queue-search-input"
+                placeholder="Buscar cola..."
+                autocomplete="off"
+                spellcheck="false"
+              />
+              <button class="queue-search-clear" id="queueSearchClear" tabindex="-1">✕</button>
+            </div>
+            <div class="queue-btn-list" id="queueBtns"></div>
+            <div class="queue-search-empty" id="queueSearchEmpty">Sin resultados</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ② Selectores — colapsada por defecto -->
+      <div class="toggle-section">
+        <button class="toggle-header" id="hdrSelectors">
+          <span class="toggle-title">Selectores</span>
+          <span class="toggle-hint empty" id="selHint">sin configurar</span>
+          <span class="toggle-chevron" id="chevSelectors">▾</span>
+        </button>
+        <div id="bodySelectors" style="display:none">
+          <div class="toggle-body-inner">
+            <div class="sel-section">
+              <div class="sel-row">
+                <div class="sel-dot" id="sdotQueue"></div>
+                <div class="sel-info">
+                  <div class="sel-label">Cola</div>
+                  <div class="sel-value empty" id="svalQueue">sin configurar</div>
+                </div>
+                <button class="sel-cap-btn" id="sbtnQueue">⌖ Capturar</button>
+                <button class="sel-clear-btn" id="sclearQueue" disabled title="Limpiar">✕</button>
+              </div>
+              <div class="sel-row">
+                <div class="sel-dot" id="sdotPhone"></div>
+                <div class="sel-info">
+                  <div class="sel-label">Teléfono <span style="opacity:0.35;font-size:8px">opt.</span></div>
+                  <div class="sel-value empty" id="svalPhone">sin configurar</div>
+                </div>
+                <button class="sel-cap-btn" id="sbtnPhone">⌖ Capturar</button>
+                <button class="sel-clear-btn" id="sclearPhone" disabled title="Limpiar">✕</button>
+              </div>
+              <div class="sel-row">
+                <div class="sel-dot" id="sdotName"></div>
+                <div class="sel-info">
+                  <div class="sel-label">Nombre <span style="opacity:0.35;font-size:8px">opt.</span></div>
+                  <div class="sel-value empty" id="svalName">sin configurar</div>
+                </div>
+                <button class="sel-cap-btn" id="sbtnName">⌖ Capturar</button>
+                <button class="sel-clear-btn" id="sclearName" disabled title="Limpiar">✕</button>
+              </div>
+              <div class="cn-row">
+                <div class="cn-top">
+                  <div class="sel-dot" id="sdotNotes"></div>
+                  <div class="sel-info">
+                    <div class="sel-label">Call Notes <span style="opacity:0.35;font-size:8px">URL</span></div>
+                  </div>
+                  <button class="sel-clear-btn" id="sclearNotes" disabled title="Limpiar">✕</button>
+                </div>
+                <input type="text" class="cn-input" id="sinputNotes"
+                  placeholder="file:///C:/ruta/a/call-notes.html" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Toolbar siempre visible -->
+      <div class="op-toolbar">
+        <button class="op-btn op-btn-notes" id="btnCallNotes">📋 Call Notes</button>
+        <button class="op-btn op-btn-verify" id="btnVerify">Verificar</button>
+        <button class="op-btn op-btn-icon" id="btnManualTrigger" title="Disparar detección manual (Alt+Shift+Q)">⚡</button>
+        <button class="op-btn op-btn-icon" id="btnExportConfig" title="Exportar config como JSON">↓</button>
+        <button class="op-btn op-btn-icon" id="btnEditQueues" title="Editar colas">✏</button>
+        <button class="op-btn op-btn-icon" id="btnReconfig" title="Cambiar configuración">⚙</button>
+        <button class="op-btn op-btn-icon op-btn-clear" id="btnClear" title="Eliminar configuración">✕</button>
+      </div>
+
+    </div>
+
+    <!-- ── VISTA SETUP (sin config) ── -->
+    <div id="setupView" class="view">
+
+      <div class="status-card">
+        <div class="status-icon">⚙️</div>
+        <div class="status-info">
+          <strong id="statusTitle">Sin configuración</strong>
+          <p id="statusDesc">Cargá un archivo JSON para activar la extensión.</p>
+        </div>
+      </div>
+
+      <div>
+        <div class="section-label">Cargar configuración</div>
+        <div class="drop-zone" id="dropZone">
+          <input type="file" id="fileInput" accept=".json,.csv" />
+          <span class="drop-icon">📂</span>
+          <p>
+            <strong>Arrastrá o hacé click</strong> para cargar<br />
+            tu archivo de configuración
+            <small>Soporta .json y .csv</small>
+          </p>
+        </div>
+      </div>
+
+      <div>
+        <div class="section-label">Descargar plantilla</div>
+        <div class="template-grid">
+          <button class="template-btn" id="tplJson">
+            <span>📄 JSON</span>
+            <small>Recomendado</small>
+          </button>
+          <button class="template-btn" id="tplCsv">
+            <span>📊 CSV</span>
+            <small>Para Excel</small>
+          </button>
+        </div>
+      </div>
+
+      <div class="warn-card" id="fileWarn">
+        <strong>⚠ Para testear con archivo local (file://)</strong>
+        Necesitás habilitar "Permitir acceso a URLs de archivo" en la extensión.<br/>
+        <a id="goExtSettings">→ Abrir configuración de la extensión</a>
+      </div>
+
+    </div>
+
+    <!-- ── LOG ── -->
+    <div id="logSection">
+      <div class="section-label">Actividad reciente</div>
+      <div class="log-box" id="logBox">
+        <span class="log-line log-warn">— esperando config —</span>
+      </div>
+    </div>
+
+    <!-- ── Credit ── -->
+    <div class="footer-credit">
+      <a href="https://ignacioporrini.github.io/" target="_blank">✦ Ignacio Porrini</a>
+    </div>
+
+  </div>
+
+  <div id="toast"></div>
+  <script src="src/popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,1390 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Call Notes</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    /* ── Variables ── */
+    :root {
+      --bg:        #f0f2f7;
+      --surface:   #ffffff;
+      --surface2:  #f5f6fb;
+      --surface3:  #eaecf5;
+      --border:    #dce1ed;
+      --border2:   #c5cce0;
+      --accent:    #3d7df5;
+      --accent-dim:#e8f0ff;
+      --green:     #16a34a;
+      --amber:     #d97706;
+      --red:       #dc2626;
+      --text:      #1c2033;
+      --text2:     #4a5068;
+      --text3:     #8891a8;
+      --mono:      'DM Mono', monospace;
+      --sans:      'DM Sans', sans-serif;
+      --radius:    8px;
+      --sidebar-w: 220px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 14px;
+      overflow: hidden;
+    }
+
+    /* ── Layout ── */
+    .app {
+      display: flex;
+      height: 100vh;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: var(--sidebar-w);
+      flex-shrink: 0;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      box-shadow: 2px 0 8px rgba(28,32,51,0.06);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .sidebar-header {
+      padding: 18px 16px 14px;
+      border-bottom: 1px solid var(--border);
+      position: relative;
+    }
+
+    .sidebar-header::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, var(--accent) 0%, transparent 60%);
+    }
+
+    .app-name {
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      letter-spacing: 0.04em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .app-name-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    .app-subtitle {
+      font-family: var(--mono);
+      font-size: 9px;
+      color: var(--text3);
+      margin-top: 3px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    /* ── Call list ── */
+    .call-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px 8px;
+    }
+
+    .call-list::-webkit-scrollbar { width: 3px; }
+    .call-list::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+    .call-item {
+      padding: 9px 10px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: background 0.15s;
+      border: 1px solid transparent;
+      margin-bottom: 3px;
+      position: relative;
+    }
+
+    .call-item:hover { background: var(--surface2); }
+
+    .call-item.active {
+      background: var(--surface3);
+      border-color: var(--border2);
+    }
+
+    .call-item.active::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 6px; bottom: 6px;
+      width: 2px;
+      background: var(--accent);
+      border-radius: 2px;
+    }
+
+    .call-item-title {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .call-item-num {
+      font-size: 9px;
+      color: var(--text3);
+      background: var(--surface3);
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-family: var(--mono);
+    }
+
+    .call-item-meta {
+      font-size: 10px;
+      color: var(--text3);
+      margin-top: 3px;
+      font-family: var(--mono);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .call-item-tag {
+      font-size: 9px;
+      padding: 1px 5px;
+      border-radius: 3px;
+      background: var(--accent-dim);
+      color: var(--accent);
+      margin-top: 4px;
+      display: inline-block;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-family: var(--mono);
+    }
+
+    /* ── Add button ── */
+    .sidebar-footer {
+      padding: 10px 8px 12px;
+      border-top: 1px solid var(--border);
+    }
+
+    .btn-add {
+      width: 100%;
+      padding: 9px;
+      background: var(--surface2);
+      border: 1px dashed var(--border2);
+      border-radius: var(--radius);
+      color: var(--text2);
+      font-family: var(--mono);
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.15s;
+      letter-spacing: 0.04em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn-add:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-dim);
+    }
+
+    /* ── Main area ── */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: var(--bg);
+    }
+
+    /* Empty state */
+    .empty-state {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--text3);
+      font-family: var(--mono);
+      font-size: 12px;
+      gap: 12px;
+      display: none;
+    }
+
+    .empty-state.show { display: flex; }
+
+    .empty-icon {
+      font-size: 32px;
+      opacity: 0.3;
+    }
+
+    /* ── Form panel ── */
+    .form-panel {
+      flex: 1;
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .form-panel.active {
+      display: flex;
+    }
+
+    /* Panel header */
+    .panel-header {
+      padding: 16px 24px 14px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      background: var(--surface);
+    }
+
+    .panel-title {
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .panel-id {
+      font-size: 10px;
+      color: var(--text3);
+      background: var(--surface2);
+      padding: 2px 7px;
+      border-radius: 4px;
+    }
+
+    /* Queue badge — populated by QTL */
+    .queue-badge {
+      font-size: 10px;
+      font-family: var(--mono);
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: var(--accent-dim);
+      color: var(--accent);
+      border: 1px solid rgba(79,142,247,0.2);
+      display: none;
+    }
+
+    .queue-badge.show { display: inline-flex; align-items: center; gap: 5px; }
+
+    /* Phone badge */
+    .phone-badge {
+      font-size: 10px;
+      font-family: var(--mono);
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: rgba(52, 211, 153, 0.1);
+      color: var(--green);
+      border: 1px solid rgba(52,211,153,0.2);
+      display: none;
+    }
+
+    .phone-badge.show { display: inline-flex; align-items: center; gap: 5px; }
+
+    .panel-badges {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    /* ── Form body ── */
+    .form-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .form-body::-webkit-scrollbar { width: 3px; }
+    .form-body::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+    /* Field groups */
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .field-label {
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text2);
+      font-weight: 500;
+    }
+
+    /* Select */
+    .field-select {
+      width: 100%;
+      padding: 9px 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 12px;
+      cursor: pointer;
+      transition: border-color 0.15s;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238891a8' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      padding-right: 28px;
+    }
+
+    .field-select:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .field-select option {
+      background: var(--surface2);
+      color: var(--text);
+    }
+
+    /* Textarea */
+    .field-textarea {
+      width: 100%;
+      padding: 10px 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 13px;
+      line-height: 1.6;
+      resize: vertical;
+      transition: border-color 0.15s;
+    }
+
+    .field-textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .field-textarea::placeholder { color: var(--text3); }
+
+    .field-textarea.comentario { min-height: 180px; }
+    .field-textarea.notas { min-height: 100px; }
+
+    /* ── Action bar ── */
+    .action-bar {
+      padding: 12px 24px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+      background: var(--surface);
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border-radius: var(--radius);
+      border: none;
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+      letter-spacing: 0.04em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+    }
+
+    .btn-primary:hover { filter: brightness(1.1); }
+
+    .btn-secondary {
+      background: var(--surface2);
+      color: var(--text2);
+      border: 1px solid var(--border2);
+    }
+
+    .btn-secondary:hover { color: var(--text); border-color: var(--text3); }
+
+    .btn-danger {
+      background: transparent;
+      color: var(--text3);
+      border: 1px solid transparent;
+      margin-left: auto;
+    }
+
+    .btn-danger:hover { color: var(--red); border-color: rgba(248,113,113,0.3); }
+
+    /* ── Toast ── */
+    #toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(10px);
+      background: var(--surface3);
+      border: 1px solid var(--border2);
+      border-radius: var(--radius);
+      padding: 8px 18px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text);
+      opacity: 0;
+      transition: all 0.2s;
+      pointer-events: none;
+      white-space: nowrap;
+      z-index: 9999;
+    }
+
+    #toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    #toast.ok { border-color: var(--green); color: var(--green); }
+    #toast.warn { border-color: var(--amber); color: var(--amber); }
+
+    /* ── Export button ── */
+    .btn-export {
+      width: 100%;
+      padding: 8px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text3);
+      font-family: var(--mono);
+      font-size: 10px;
+      cursor: pointer;
+      transition: all 0.15s;
+      letter-spacing: 0.04em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .btn-export:hover {
+      border-color: var(--green);
+      color: var(--green);
+      background: rgba(22, 163, 74, 0.06);
+    }
+
+    .btn-export:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    /* Export modal */
+    .export-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(28,32,51,0.25);
+      z-index: 99999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: fadein 0.15s ease;
+    }
+
+    .export-modal {
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      border-radius: 12px;
+      padding: 24px;
+      width: 340px;
+      box-shadow: 0 8px 32px rgba(28,32,51,0.14);
+    }
+
+    .export-modal-title {
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 4px;
+      letter-spacing: 0.04em;
+    }
+
+    .export-modal-sub {
+      font-size: 11px;
+      color: var(--text3);
+      font-family: var(--mono);
+      margin-bottom: 18px;
+    }
+
+    .export-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .export-opt {
+      padding: 12px 10px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .export-opt:hover {
+      border-color: var(--accent);
+      background: var(--accent-dim);
+    }
+
+    .export-opt-icon { font-size: 20px; }
+
+    .export-opt-name {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .export-opt-desc {
+      font-size: 10px;
+      color: var(--text3);
+      font-family: var(--mono);
+    }
+
+    .export-opt.featured {
+      border-color: var(--green);
+      background: rgba(22,163,74,0.06);
+    }
+
+    .export-opt.featured .export-opt-name { color: var(--green); }
+
+    .export-both {
+      width: 100%;
+      padding: 10px;
+      background: var(--accent);
+      border: none;
+      border-radius: var(--radius);
+      color: white;
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: filter 0.15s;
+      margin-bottom: 8px;
+      letter-spacing: 0.04em;
+    }
+
+    .export-both:hover { filter: brightness(1.1); }
+
+    .export-cancel {
+      width: 100%;
+      padding: 8px;
+      background: transparent;
+      border: none;
+      color: var(--text3);
+      font-family: var(--mono);
+      font-size: 11px;
+      cursor: pointer;
+      transition: color 0.15s;
+    }
+
+    .export-cancel:hover { color: var(--text2); }
+
+    /* ── Links de la cola ── */
+    .call-links-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+    .call-links-actions {
+      display: flex;
+      gap: 5px;
+      align-items: center;
+    }
+    .call-links-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text3);
+      font-family: var(--mono);
+      font-size: 9px;
+      padding: 2px 7px;
+      cursor: pointer;
+      transition: all 0.15s;
+      line-height: 1.4;
+    }
+    .call-links-btn:hover { border-color: var(--text2); color: var(--text2); }
+    .call-links-btn.open-all { color: var(--accent); border-color: rgba(61,125,245,0.3); }
+    .call-links-btn.open-all:hover { background: var(--accent-dim); border-color: var(--accent); }
+    .call-links-block {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      transition: opacity 0.2s;
+    }
+    .call-links-block.collapsed { display: none; }
+    .call-link-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.12s;
+      text-decoration: none;
+    }
+    .call-link-row:last-child { border-bottom: none; }
+    .call-link-row:hover { background: var(--surface2); }
+    .call-link-dot {
+      width: 4px; height: 4px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex-shrink: 0;
+    }
+    .call-link-label {
+      flex: 1;
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--accent);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      min-width: 0;
+    }
+    .call-link-url-sub {
+      font-size: 9px;
+      color: var(--text3);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 120px;
+    }
+    .call-link-open {
+      font-family: var(--mono);
+      font-size: 9px;
+      color: var(--text3);
+      flex-shrink: 0;
+      transition: color 0.12s;
+    }
+    .call-link-row:hover .call-link-open { color: var(--accent); }
+
+    /* ── QTL injection banner (mini) ── */
+    .qtl-inject-bar {
+      display: none;
+      margin: 0 24px;
+      padding: 8px 12px;
+      background: var(--accent-dim);
+      border: 1px solid rgba(61,125,245,0.2);
+      border-radius: var(--radius);
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--accent);
+      align-items: center;
+      gap: 8px;
+      animation: fadein 0.3s ease;
+    }
+
+    .qtl-inject-bar.show { display: flex; }
+
+    @keyframes fadein {
+      from { opacity: 0; transform: translateY(-4px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Call data fields (from QTL) ── */
+    .call-data-block {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+    }
+
+    .call-data-field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .call-data-label {
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text2);
+    }
+
+    .call-data-input {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 6px 9px;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text);
+      width: 100%;
+      transition: border-color 0.15s;
+    }
+
+    .call-data-input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .call-data-input::placeholder { color: var(--text3); }
+
+    .call-data-input.injected {
+      border-color: rgba(61,125,245,0.4);
+      background: var(--accent-dim);
+    }
+
+    .call-data-section-label {
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text2);
+      margin-bottom: 2px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .call-data-section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ── Copy field button ── */
+    .copy-label-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .copy-field-btn {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      color: var(--text3);
+      padding: 0 2px;
+      line-height: 1;
+      transition: color 0.15s;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+    }
+
+    .copy-field-btn:hover { color: var(--accent); }
+    .copy-field-btn svg   { display: block; }
+
+    /* ── Credit ── */
+    .sidebar-credit {
+      display: block;
+      text-align: center;
+      font-family: var(--mono);
+      font-size: 9px;
+      color: var(--text3);
+      text-decoration: none;
+      letter-spacing: 0.06em;
+      padding-top: 10px;
+      opacity: 0.5;
+      transition: all 0.15s;
+    }
+    .sidebar-credit:hover { opacity: 1; color: var(--accent); }
+  </style>
+</head>
+<body>
+
+<div class="app">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="app-name">
+        <span class="app-name-dot"></span>
+        Call Notes
+      </div>
+      <div class="app-subtitle">// QTL · session log</div>
+    </div>
+
+    <div class="call-list" id="callList"></div>
+
+    <div class="sidebar-footer">
+      <button class="btn-add" id="btnAdd">
+        <span>+</span> Nueva llamada
+      </button>
+      <button class="btn-export" id="btnExport" disabled>
+        ↓ Exportar sesión
+      </button>
+      <a class="sidebar-credit" href="https://ignacioporrini.github.io/" target="_blank">✦ Ignacio Porrini</a>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main" id="main">
+    <div class="empty-state show" id="emptyState">
+      <span class="empty-icon">📋</span>
+      <span>Seleccioná o creá una llamada</span>
+    </div>
+  </main>
+</div>
+
+<div id="toast"></div>
+
+<script>
+  /**
+   * call-notes.js
+   * @author Ignacio
+   * @built-with Claude Sonnet 4.6 (Anthropic)
+   * @integration Queue Tab Launcher (QTL)
+   */
+
+  let counter = 0;
+  let activeId = null;
+  const panels = {}; // id → { li, panel }
+
+  const callList  = document.getElementById('callList');
+  const main      = document.getElementById('main');
+  const emptyState= document.getElementById('emptyState');
+  const btnAdd    = document.getElementById('btnAdd');
+
+  const LABELS = [
+    // Contacto
+    "Contacto efectivo",
+    "No contesta",
+    "Ocupado / Línea cortada",
+    "Buzón de voz",
+    "Número equivocado",
+    "Número fuera de servicio",
+    "Solicitó no ser contactado",
+    // Gestión comercial
+    "Consulta de producto / servicio",
+    "Solicitud de cotización",
+    "Venta concretada",
+    "Venta en proceso",
+    "Cliente no interesado",
+    "Derivado a ventas",
+    "Campaña saliente — renovación",
+    "Campaña saliente — captación",
+    "Descuento / promoción aplicada",
+    "Seguimiento de propuesta",
+    // Soporte y atención
+    "Consulta técnica",
+    "Incidente reportado",
+    "Incidente resuelto en llamada",
+    "Escalado a soporte técnico",
+    "Visita técnica coordinada",
+    "Visita técnica reprogramada",
+    "Turno agendado",
+    "Turno cancelado por cliente",
+    // Administración y contratos
+    "Consulta de factura",
+    "Ajuste de facturación",
+    "Cambio de datos del cliente",
+    "Cambio de plan / servicio",
+    "Solicitud de baja",
+    "Baja procesada",
+    "Retención exitosa",
+    "Retención fallida",
+    "Solicitud de reducción",
+    "Contrato enviado",
+    "Contrato firmado",
+    // Cobranzas
+    "Gestión de cobranza",
+    "Promesa de pago",
+    "Pago confirmado",
+    "Deuda en disputa",
+    "Derivado a cobranzas",
+    // Reclamos y seguimiento
+    "Reclamo ingresado",
+    "Reclamo en seguimiento",
+    "Reclamo resuelto",
+    "Segunda llamada / reitero",
+    "Cliente escaló a supervisor",
+    "Supervisor atendió",
+    // Resultado general
+    "Gestión completada",
+    "Pendiente de respuesta interna",
+    "Pendiente de respuesta del cliente",
+    "Sin gestión — llamada errónea",
+  ];
+
+  const labelOptions = LABELS.map(l =>
+    `<option value="${l}">${l}</option>`
+  ).join('');
+
+  // ── Create call ───────────────────────────────────────────────────────
+  function addCall(opts = {}) {
+    counter++;
+    const id = counter;
+    const { queue = null, phone = null, name = null, tabs = [] } = opts;
+    const callTime = new Date().toLocaleTimeString('es-UY', { hour: '2-digit', minute: '2-digit' });
+
+    // Sidebar item
+    const li = document.createElement('div');
+    li.className = 'call-item';
+    li.dataset.id = id;
+    li.innerHTML = `
+      <div class="call-item-title">
+        <span>Llamada</span>
+        <span class="call-item-num">#${String(id).padStart(2,'0')}</span>
+        <span style="margin-left:auto;font-size:9px;color:var(--text3);font-family:var(--mono)">${callTime}</span>
+      </div>
+      <div class="call-item-meta" id="li-meta-${id}">${phone || '—'}</div>
+      <div id="li-tag-${id}"></div>
+    `;
+    li.addEventListener('click', () => selectCall(id));
+    callList.appendChild(li);
+
+    // Update sidebar meta with phone/name and queue tag
+    const metaEl = document.getElementById(`li-meta-${id}`);
+    if (name) metaEl.textContent = name;
+    else if (phone) metaEl.textContent = phone;
+
+    if (queue) {
+      const tagEl = document.getElementById(`li-tag-${id}`);
+      tagEl.innerHTML = `<span class="call-item-tag">${queue}</span>`;
+    }
+
+    // Form panel
+    const panel = document.createElement('div');
+    panel.className = 'form-panel';
+    panel.id = `panel-${id}`;
+
+    panel.innerHTML = `
+      <div class="panel-header">
+        <div class="panel-title">
+          Llamada
+          <span class="panel-id">#${String(id).padStart(2,'0')}</span>
+        </div>
+        <div class="panel-badges">
+          <span style="font-family:var(--mono);font-size:9px;color:var(--text3)">${callTime}</span>
+          ${(queue || phone || name) ? '<span style="font-family:var(--mono);font-size:9px;color:var(--accent);letter-spacing:0.06em;">⚡ QTL</span>' : ''}
+        </div>
+      </div>
+
+      <div class="form-body">
+
+        <div class="field-group">
+          <div class="call-data-section-label">Datos de la llamada</div>
+          <div class="call-data-block">
+            <div class="call-data-field">
+              <div class="copy-label-row">
+                <span class="call-data-label">Teléfono</span>
+                <button class="copy-field-btn" onclick="copyField('f-phone-${id}')" title="Copiar teléfono">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                </button>
+              </div>
+              <input type="text"
+                class="call-data-input ${phone ? 'injected' : ''}"
+                id="f-phone-${id}"
+                value="${phone || ''}"
+                placeholder="—" />
+            </div>
+            <div class="call-data-field">
+              <div class="copy-label-row">
+                <span class="call-data-label">Cola</span>
+                <button class="copy-field-btn" onclick="copyField('f-queue-${id}')" title="Copiar cola">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2 2v1"/></svg>
+                </button>
+              </div>
+              <input type="text"
+                class="call-data-input ${queue ? 'injected' : ''}"
+                id="f-queue-${id}"
+                value="${queue || ''}"
+                placeholder="—" />
+            </div>
+            <div class="call-data-field">
+              <div class="copy-label-row">
+                <span class="call-data-label">Nombre / ID</span>
+                <button class="copy-field-btn" onclick="copyField('f-name-${id}')" title="Copiar nombre">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2 2v1"/></svg>
+                </button>
+              </div>
+              <input type="text"
+                class="call-data-input ${name ? 'injected' : ''}"
+                id="f-name-${id}"
+                value="${name || ''}"
+                placeholder="—" />
+            </div>
+          </div>
+        </div>
+
+        ${tabs.length ? `
+        <div class="field-group">
+          <div class="call-links-header">
+            <div class="call-data-section-label" style="margin-bottom:0">Links de la cola</div>
+            <div class="call-links-actions">
+              <button class="call-links-btn open-all" onclick="openAllLinks(${id})">↗ Abrir todos</button>
+              <button class="call-links-btn" id="links-toggle-${id}" onclick="toggleLinks(${id})">▲</button>
+            </div>
+          </div>
+          <div class="call-links-block" id="links-block-${id}">
+            ${tabs.map(t => {
+              let label = t.title || '';
+              let sub   = '';
+              if (!label) {
+                try { const u = new URL(t.url); label = u.hostname + u.pathname; } catch { label = t.url; }
+              } else {
+                try { const u = new URL(t.url); sub = u.hostname; } catch {}
+              }
+              return `<a class="call-link-row" href="${t.url}" target="_blank" title="${t.url}">
+                <span class="call-link-dot"></span>
+                <span class="call-link-label">${label}${sub ? `<span class="call-link-url-sub" style="display:block">${sub}</span>` : ''}</span>
+                <span class="call-link-open">↗</span>
+              </a>`;
+            }).join('')}
+          </div>
+        </div>` : ''}
+
+        <div class="field-group">
+          <div class="copy-label-row">
+            <label class="field-label">Etiqueta</label>
+            <button class="copy-field-btn" onclick="copyField('select-${id}')" title="Copiar etiqueta">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2 2v1"/></svg>
+            </button>
+          </div>
+          <select class="field-select" id="select-${id}">
+            ${labelOptions}
+          </select>
+        </div>
+
+        <div class="field-group">
+          <div class="copy-label-row">
+            <label class="field-label">Comentario</label>
+            <button class="copy-field-btn" onclick="copyField('comment-${id}')" title="Copiar comentario">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2 2v1"/></svg>
+            </button>
+          </div>
+          <textarea class="field-textarea comentario" id="comment-${id}"
+            placeholder="Escribí el comentario de la gestión..."></textarea>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Notas internas</label>
+          <textarea class="field-textarea notas" id="notes-${id}"
+            placeholder="Notas adicionales (no se copian)..."></textarea>
+        </div>
+      </div>
+
+      <div class="action-bar">
+        <button class="btn btn-secondary" onclick="copyFull(${id})">
+          Copiar datos de llamada
+        </button>
+        <button class="btn btn-danger" onclick="removeCall(${id})">
+          Eliminar
+        </button>
+      </div>
+    `;
+
+    main.appendChild(panel);
+    panels[id] = { li, panel, tabs };
+
+    selectCall(id);
+
+    // Live label preview in sidebar
+    const sel = document.getElementById(`select-${id}`);
+    sel.addEventListener('change', () => {
+      const tagEl = document.getElementById(`li-tag-${id}`);
+      if (sel.value) {
+        tagEl.innerHTML = `<span class="call-item-tag">${sel.value}</span>`;
+      }
+    });
+
+    return id;
+  }
+
+
+
+  // ── Links: toggle y abrir todos ──────────────────────────────────────
+  function toggleLinks(id) {
+    const block  = document.getElementById(`links-block-${id}`);
+    const toggle = document.getElementById(`links-toggle-${id}`);
+    if (!block) return;
+    const collapsed = block.classList.toggle('collapsed');
+    toggle.textContent = collapsed ? '▼' : '▲';
+  }
+
+  function openAllLinks(id) {
+    const entry = panels[id];
+    if (!entry?.tabs?.length) return;
+    // CustomEvent sobre document: más confiable que postMessage entre
+    // el mundo de la página y el mundo aislado del content script.
+    document.dispatchEvent(new CustomEvent('__qtl_open_all__', {
+      detail: { urls: entry.tabs.map(t => t.url) }
+    }));
+  }
+
+  // ── Select call ───────────────────────────────────────────────────────
+  function selectCall(id) {
+    // Deactivate all
+    Object.values(panels).forEach(({ li, panel }) => {
+      li.classList.remove('active');
+      panel.classList.remove('active');
+    });
+
+    emptyState.classList.remove('show');
+
+    const entry = panels[id];
+    if (!entry) return;
+
+    entry.li.classList.add('active');
+    entry.panel.classList.add('active');
+    activeId = id;
+  }
+
+  // ── Remove call ───────────────────────────────────────────────────────
+  function removeCall(id) {
+    const entry = panels[id];
+    if (!entry) return;
+    entry.li.remove();
+    entry.panel.remove();
+    delete panels[id];
+
+    const remaining = Object.keys(panels);
+    if (remaining.length > 0) {
+      selectCall(Number(remaining[remaining.length - 1]));
+    } else {
+      activeId = null;
+      emptyState.classList.add('show');
+    }
+    updateExportBtn();
+  }
+
+  // ── Copy functions ────────────────────────────────────────────────────
+  function copyFull(id) {
+    const label   = document.getElementById(`select-${id}`).value;
+    const comment = document.getElementById(`comment-${id}`).value.trim();
+    if (!label || !comment) { toast('Completá la etiqueta y el comentario', 'warn'); return; }
+
+    const phone = document.getElementById(`f-phone-${id}`)?.value.trim();
+    const queue = document.getElementById(`f-queue-${id}`)?.value.trim();
+    const name  = document.getElementById(`f-name-${id}`)?.value.trim();
+
+    let header = '';
+    if (phone || queue || name) {
+      const parts = [];
+      if (name)  parts.push(`Cliente: ${name}`);
+      if (phone) parts.push(`Tel: ${phone}`);
+      if (queue) parts.push(`Cola: ${queue}`);
+      header = parts.join(' · ') + '\n';
+    }
+
+    const text = `${label}\n\n${header}${comment}`;
+    navigator.clipboard.writeText(text)
+      .then(() => toast('Copiado al portapapeles ✓', 'ok'))
+      .catch(() => toast('Error al copiar', 'warn'));
+  }
+
+  function copyField(elementId) {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+    const val = (el.tagName === 'SELECT' ? el.value : el.value || el.textContent || '').trim();
+    if (!val) { toast('Campo vacío', 'warn'); return; }
+    navigator.clipboard.writeText(val)
+      .then(() => toast('Copiado ✓', 'ok'))
+      .catch(() => toast('Error al copiar', 'warn'));
+  }
+
+  // ── Toast ─────────────────────────────────────────────────────────────
+  let toastTimer;
+  function toast(msg, type = '') {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = `show ${type}`;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.className = '', 2500);
+  }
+
+  // ── QTL Integration ───────────────────────────────────────────────────
+  // Escucha mensajes del content script de QTL inyectados vía postMessage
+  window.addEventListener('message', (e) => {
+    if (e.data?.type === 'QTL_NEW_CALL') {
+      const { queue, phone, name, tabs = [] } = e.data;
+      addCall({ queue, phone, name, tabs });
+      toast(`Nueva llamada: ${name || queue || phone}`, 'ok');
+    }
+  });
+
+  // También escucha parámetros en la URL (para cuando QTL abre esta pestaña)
+  function checkURLParams() {
+    const params = new URLSearchParams(window.location.search);
+    const queue = params.get('queue');
+    const phone = params.get('phone');
+    const name  = params.get('name');
+    let tabs = [];
+    try { tabs = JSON.parse(params.get('tabs') || '[]'); } catch {}
+    if (queue || phone || name) {
+      addCall({ queue, phone, name, tabs });
+    } else {
+      addCall(); // llamada vacía por defecto
+    }
+  }
+
+  // ── Export ───────────────────────────────────────────────────────────
+  const btnExport = document.getElementById('btnExport');
+
+  function getSessionData() {
+    return Object.keys(panels).map(id => {
+      const n = Number(id);
+      return {
+        id: n,
+        phone:    document.getElementById(`f-phone-${n}`)?.value.trim()   || '',
+        queue:    document.getElementById(`f-queue-${n}`)?.value.trim()   || '',
+        name:     document.getElementById(`f-name-${n}`)?.value.trim()    || '',
+        label:    document.getElementById(`select-${n}`)?.value           || '',
+        comment:  document.getElementById(`comment-${n}`)?.value.trim()  || '',
+        notes:    document.getElementById(`notes-${n}`)?.value.trim()     || '',
+        timestamp: new Date().toISOString(),
+      };
+    });
+  }
+
+  function exportCSV() {
+    const rows = getSessionData();
+    if (!rows.length) { toast('No hay llamadas para exportar', 'warn'); return; }
+
+    const headers = ['#', 'Teléfono', 'Cola', 'Nombre/ID', 'Etiqueta', 'Comentario', 'Notas', 'Timestamp'];
+    const escape = v => `"${String(v).replace(/"/g, '""')}"`;
+    const lines = [
+      headers.join(','),
+      ...rows.map(r => [
+        r.id, r.phone, r.queue, r.name,
+        r.label, r.comment, r.notes, r.timestamp
+      ].map(escape).join(','))
+    ];
+
+    downloadFile(
+      'call-notes-' + dateStamp() + '.csv',
+      String.fromCharCode(0xFEFF) + lines.join('\r\n'),
+      'text/csv;charset=utf-8'
+    );
+    toast('CSV exportado ✓', 'ok');
+  }
+
+  function exportJSON() {
+    const rows = getSessionData();
+    if (!rows.length) { toast('No hay llamadas para exportar', 'warn'); return; }
+
+    const payload = {
+      exported_at: new Date().toISOString(),
+      total_calls: rows.length,
+      calls: rows,
+    };
+
+    downloadFile(
+      `call-notes-${dateStamp()}.json`,
+      JSON.stringify(payload, null, 2),
+      'application/json'
+    );
+    toast('JSON exportado ✓', 'ok');
+  }
+
+  function exportBoth() {
+    exportCSV();
+    setTimeout(exportJSON, 300);
+  }
+
+  function downloadFile(filename, content, mimeType) {
+    const blob = new Blob([content], { type: mimeType });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = filename; a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function dateStamp() {
+    const d = new Date();
+    return `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}_${String(d.getHours()).padStart(2,'0')}${String(d.getMinutes()).padStart(2,'0')}`;
+  }
+
+  function showExportModal() {
+    const overlay = document.createElement('div');
+    overlay.className = 'export-modal-overlay';
+    overlay.id = 'exportOverlay';
+
+    const count = Object.keys(panels).length;
+
+    overlay.innerHTML = `
+      <div class="export-modal">
+        <div class="export-modal-title">Exportar sesión</div>
+        <div class="export-modal-sub">${count} llamada${count !== 1 ? 's' : ''} registrada${count !== 1 ? 's' : ''}</div>
+
+        <div class="export-options">
+          <div class="export-opt featured" id="expCsv">
+            <span class="export-opt-icon">📊</span>
+            <span class="export-opt-name">CSV</span>
+            <span class="export-opt-desc">Excel / Sheets</span>
+          </div>
+          <div class="export-opt" id="expJson">
+            <span class="export-opt-icon">📄</span>
+            <span class="export-opt-name">JSON</span>
+            <span class="export-opt-desc">Backup / API</span>
+          </div>
+        </div>
+
+        <button class="export-both" id="expBoth">↓ Exportar CSV + JSON</button>
+        <button class="export-cancel" id="expCancel">Cancelar</button>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    document.getElementById('expCsv').onclick    = () => { exportCSV();  closeModal(); };
+    document.getElementById('expJson').onclick   = () => { exportJSON(); closeModal(); };
+    document.getElementById('expBoth').onclick   = () => { exportBoth(); closeModal(); };
+    document.getElementById('expCancel').onclick = closeModal;
+    overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+
+    function closeModal() {
+      document.getElementById('exportOverlay')?.remove();
+    }
+  }
+
+  btnExport.addEventListener('click', showExportModal);
+
+  // Enable export button when there are calls
+  function updateExportBtn() {
+    btnExport.disabled = Object.keys(panels).length === 0;
+  }
+
+  // ── Init ──────────────────────────────────────────────────────────────
+  btnAdd.addEventListener('click', () => { addCall(); updateExportBtn(); });
+  checkURLParams();
+  updateExportBtn();
+</script>
+</body>
+</html>
