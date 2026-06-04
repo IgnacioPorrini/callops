@@ -54,14 +54,16 @@
       display: flex;
       flex-direction: column;
       overflow: hidden;
+      transition: width 0.25s ease;
     }
+    .sidebar.collapsed { width: 48px; }
 
     .sidebar-header {
-      padding: 18px 16px 14px;
+      padding: 14px 12px 12px;
       border-bottom: 1px solid var(--border);
       position: relative;
+      flex-shrink: 0;
     }
-
     .sidebar-header::after {
       content: '';
       position: absolute;
@@ -69,24 +71,48 @@
       height: 1px;
       background: linear-gradient(90deg, var(--accent) 0%, transparent 60%);
     }
+    .sidebar-header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+    .sidebar-toggle {
+      width: 24px; height: 24px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      cursor: pointer;
+      color: var(--text3);
+      font-size: 10px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.15s;
+      font-family: var(--mono);
+    }
+    .sidebar-toggle:hover { border-color: var(--accent); color: var(--accent); }
 
     .app-name {
       font-family: var(--mono);
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 500;
       color: var(--text);
       letter-spacing: 0.04em;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 7px;
+      white-space: nowrap;
+      overflow: hidden;
+      transition: opacity 0.2s;
     }
+    .sidebar.collapsed .app-name { opacity: 0; pointer-events: none; }
 
     .app-name-dot {
       width: 7px; height: 7px;
       border-radius: 50%;
       background: var(--accent);
+      flex-shrink: 0;
     }
-
     .app-subtitle {
       font-family: var(--mono);
       font-size: 9px;
@@ -94,17 +120,68 @@
       margin-top: 3px;
       letter-spacing: 0.06em;
       text-transform: uppercase;
+      white-space: nowrap;
+      transition: opacity 0.2s;
     }
+    .sidebar.collapsed .app-subtitle { opacity: 0; }
 
-    /* ── Call list ── */
+    /* ── Call list (expanded) ── */
     .call-list {
       flex: 1;
       overflow-y: auto;
-      padding: 10px 8px;
+      padding: 8px 6px;
+      transition: opacity 0.2s;
     }
-
     .call-list::-webkit-scrollbar { width: 3px; }
     .call-list::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+    .sidebar.collapsed .call-list { opacity: 0; pointer-events: none; width: 0; padding: 0; flex: 0; }
+
+    /* ── Call dots (collapsed sidebar) ── */
+    .call-dots {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      padding: 8px 0;
+      flex: 1;
+      overflow-y: auto;
+    }
+    .call-dots::-webkit-scrollbar { width: 0; }
+    .sidebar.collapsed .call-dots { display: flex; }
+
+    .call-dot-btn {
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      background: var(--surface2);
+      border: 2px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--mono);
+      font-size: 9px;
+      font-weight: 700;
+      color: var(--text2);
+      cursor: pointer;
+      transition: all 0.15s;
+      flex-shrink: 0;
+      position: relative;
+    }
+    .call-dot-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+    .call-dot-btn.active {
+      border-color: var(--accent);
+      background: var(--accent-dim);
+      color: var(--accent);
+    }
+    /* Indicador de etiqueta en el dot */
+    .call-dot-btn::after {
+      content: attr(data-badge);
+      position: absolute;
+      top: -3px; right: -3px;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      border: 1.5px solid var(--surface);
+      display: none;
+    }
+    .call-dot-btn.has-label::after { display: block; }
 
     .call-item {
       padding: 9px 10px;
@@ -180,7 +257,9 @@
     .sidebar-footer {
       padding: 10px 8px 12px;
       border-top: 1px solid var(--border);
+      transition: opacity 0.2s;
     }
+    .sidebar.collapsed .sidebar-footer { opacity: 0; pointer-events: none; }
 
     .btn-add {
       width: 100%;
@@ -314,15 +393,34 @@
     /* ── Form body ── */
     .form-body {
       flex: 1;
-      overflow-y: auto;
-      padding: 20px 24px;
+      overflow: hidden;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      min-height: 0;
     }
 
-    .form-body::-webkit-scrollbar { width: 3px; }
-    .form-body::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+    /* Sección superior: datos, links, etiqueta — scroll si hace falta */
+    .form-body-top {
+      overflow-y: auto;
+      padding: 16px 24px 0;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      max-height: 45%;
+    }
+    .form-body-top::-webkit-scrollbar { width: 3px; }
+    .form-body-top::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+    /* Sección inferior: comentario llena el espacio restante */
+    .form-body-fill {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      padding: 14px 24px 0;
+      gap: 8px;
+    }
 
     /* Field groups */
     .field-group {
@@ -391,8 +489,54 @@
 
     .field-textarea::placeholder { color: var(--text3); }
 
-    .field-textarea.comentario { min-height: 180px; }
-    .field-textarea.notas { min-height: 100px; }
+    /* Comentario principal — expande en form-body-fill */
+    .field-textarea.comentario {
+      flex: 1;
+      min-height: 0;
+      resize: vertical;
+    }
+
+    /* Notas internas — colapsadas por defecto */
+    .field-textarea.notas {
+      min-height: 80px;
+      max-height: 120px;
+      resize: vertical;
+    }
+
+    /* Toggle de notas internas */
+    .notes-toggle {
+      background: transparent;
+      border: none;
+      padding: 6px 0;
+      color: var(--text2);
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: color 0.15s;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .notes-toggle:hover { color: var(--accent); }
+    .notes-toggle::before {
+      content: '▶';
+      display: inline-block;
+      transition: transform 0.2s;
+      font-size: 8px;
+    }
+    .notes-toggle.open::before { transform: rotate(90deg); }
+
+    .notes-section {
+      display: none;
+    }
+    .notes-section.open {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
 
     /* ── Action bar ── */
     .action-bar {
@@ -831,16 +975,22 @@
 
 <div class="app">
   <!-- Sidebar -->
-  <aside class="sidebar">
+  <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
-      <div class="app-name">
-        <span class="app-name-dot"></span>
-        Call Notes
+      <div class="sidebar-header-top">
+        <button class="sidebar-toggle" id="sidebarToggle" title="Plegar/expandir sidebar">❯</button>
+        <div>
+          <div class="app-name">
+            <span class="app-name-dot"></span>
+            Call Notes
+          </div>
+          <div class="app-subtitle">// QTL · session log</div>
+        </div>
       </div>
-      <div class="app-subtitle">// QTL · session log</div>
     </div>
 
     <div class="call-list" id="callList"></div>
+    <div class="call-dots" id="callDots"></div>
 
     <div class="sidebar-footer">
       <button class="btn-add" id="btnAdd">
@@ -997,106 +1147,109 @@
       </div>
 
       <div class="form-body">
+        <div class="form-body-top">
+          <div class="field-group">
+            <div class="call-data-section-label">Datos de la llamada</div>
+            <div class="call-data-block">
+              <div class="call-data-field">
+                <div class="copy-label-row">
+                  <span class="call-data-label">Teléfono</span>
+                  <button class="copy-field-btn" onclick="copyField('f-phone-${id}')" title="Copiar teléfono">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                  </button>
+                </div>
+                <input type="text"
+                  class="call-data-input ${phone ? 'injected' : ''}"
+                  id="f-phone-${id}"
+                  value="${phone || ''}"
+                  placeholder="—" />
+              </div>
+              <div class="call-data-field">
+                <div class="copy-label-row">
+                  <span class="call-data-label">Cola</span>
+                  <button class="copy-field-btn" onclick="copyField('f-queue-${id}')" title="Copiar cola">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2 2v1"/></svg>
+                  </button>
+                </div>
+                <input type="text"
+                  class="call-data-input ${queue ? 'injected' : ''}"
+                  id="f-queue-${id}"
+                  value="${queue || ''}"
+                  placeholder="—" />
+              </div>
+              <div class="call-data-field">
+                <div class="copy-label-row">
+                  <span class="call-data-label">Nombre / ID</span>
+                  <button class="copy-field-btn" onclick="copyField('f-name-${id}')" title="Copiar nombre">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2 2v1"/></svg>
+                  </button>
+                </div>
+                <input type="text"
+                  class="call-data-input ${name ? 'injected' : ''}"
+                  id="f-name-${id}"
+                  value="${name || ''}"
+                  placeholder="—" />
+              </div>
+            </div>
+          </div>
 
-        <div class="field-group">
-          <div class="call-data-section-label">Datos de la llamada</div>
-          <div class="call-data-block">
-            <div class="call-data-field">
-              <div class="copy-label-row">
-                <span class="call-data-label">Teléfono</span>
-                <button class="copy-field-btn" onclick="copyField('f-phone-${id}')" title="Copiar teléfono">
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                </button>
+          ${tabs.length ? `
+          <div class="field-group">
+            <div class="call-links-header">
+              <div class="call-data-section-label" style="margin-bottom:0">Links de la cola</div>
+              <div class="call-links-actions">
+                <button class="call-links-btn open-all" onclick="openAllLinks(${id})">↗ Abrir todos</button>
+                <button class="call-links-btn" id="links-toggle-${id}" onclick="toggleLinks(${id})">▲</button>
               </div>
-              <input type="text"
-                class="call-data-input ${phone ? 'injected' : ''}"
-                id="f-phone-${id}"
-                value="${phone || ''}"
-                placeholder="—" />
             </div>
-            <div class="call-data-field">
-              <div class="copy-label-row">
-                <span class="call-data-label">Cola</span>
-                <button class="copy-field-btn" onclick="copyField('f-queue-${id}')" title="Copiar cola">
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2 2v1"/></svg>
-                </button>
-              </div>
-              <input type="text"
-                class="call-data-input ${queue ? 'injected' : ''}"
-                id="f-queue-${id}"
-                value="${queue || ''}"
-                placeholder="—" />
+            <div class="call-links-block" id="links-block-${id}">
+              ${tabs.map(t => {
+                let label = t.title || '';
+                let sub   = '';
+                if (!label) {
+                  try { const u = new URL(t.url); label = u.hostname + u.pathname; } catch { label = t.url; }
+                } else {
+                  try { const u = new URL(t.url); sub = u.hostname; } catch {}
+                }
+                return `<a class="call-link-row" href="${t.url}" target="_blank" title="${t.url}">
+                  <span class="call-link-dot"></span>
+                  <span class="call-link-label">${label}${sub ? `<span class="call-link-url-sub" style="display:block">${sub}</span>` : ''}</span>
+                  <span class="call-link-open">↗</span>
+                </a>`;
+              }).join('')}
             </div>
-            <div class="call-data-field">
-              <div class="copy-label-row">
-                <span class="call-data-label">Nombre / ID</span>
-                <button class="copy-field-btn" onclick="copyField('f-name-${id}')" title="Copiar nombre">
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2 2v1"/></svg>
-                </button>
-              </div>
-              <input type="text"
-                class="call-data-input ${name ? 'injected' : ''}"
-                id="f-name-${id}"
-                value="${name || ''}"
-                placeholder="—" />
+          </div>` : ''}
+
+          <div class="field-group">
+            <div class="copy-label-row">
+              <label class="field-label">Etiqueta</label>
+              <button class="copy-field-btn" onclick="copyField('select-${id}')" title="Copiar etiqueta">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2 2v1"/></svg>
+              </button>
             </div>
+            <select class="field-select" id="select-${id}">
+              ${labelOptions}
+            </select>
           </div>
         </div>
 
-        ${tabs.length ? `
-        <div class="field-group">
-          <div class="call-links-header">
-            <div class="call-data-section-label" style="margin-bottom:0">Links de la cola</div>
-            <div class="call-links-actions">
-              <button class="call-links-btn open-all" onclick="openAllLinks(${id})">↗ Abrir todos</button>
-              <button class="call-links-btn" id="links-toggle-${id}" onclick="toggleLinks(${id})">▲</button>
+        <div class="form-body-fill">
+          <div class="field-group">
+            <div class="copy-label-row">
+              <label class="field-label">Comentario</label>
+              <button class="copy-field-btn" onclick="copyField('comment-${id}')" title="Copiar comentario">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2 2v1"/></svg>
+              </button>
             </div>
+            <textarea class="field-textarea comentario" id="comment-${id}"
+              placeholder="Escribí el comentario de la gestión..."></textarea>
           </div>
-          <div class="call-links-block" id="links-block-${id}">
-            ${tabs.map(t => {
-              let label = t.title || '';
-              let sub   = '';
-              if (!label) {
-                try { const u = new URL(t.url); label = u.hostname + u.pathname; } catch { label = t.url; }
-              } else {
-                try { const u = new URL(t.url); sub = u.hostname; } catch {}
-              }
-              return `<a class="call-link-row" href="${t.url}" target="_blank" title="${t.url}">
-                <span class="call-link-dot"></span>
-                <span class="call-link-label">${label}${sub ? `<span class="call-link-url-sub" style="display:block">${sub}</span>` : ''}</span>
-                <span class="call-link-open">↗</span>
-              </a>`;
-            }).join('')}
-          </div>
-        </div>` : ''}
 
-        <div class="field-group">
-          <div class="copy-label-row">
-            <label class="field-label">Etiqueta</label>
-            <button class="copy-field-btn" onclick="copyField('select-${id}')" title="Copiar etiqueta">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2 2v1"/></svg>
-            </button>
+          <button class="notes-toggle" id="notes-toggle-${id}" onclick="toggleNotes(${id})">Notas internas</button>
+          <div class="notes-section" id="notes-section-${id}">
+            <textarea class="field-textarea notas" id="notes-${id}"
+              placeholder="Notas adicionales (no se copian)..."></textarea>
           </div>
-          <select class="field-select" id="select-${id}">
-            ${labelOptions}
-          </select>
-        </div>
-
-        <div class="field-group">
-          <div class="copy-label-row">
-            <label class="field-label">Comentario</label>
-            <button class="copy-field-btn" onclick="copyField('comment-${id}')" title="Copiar comentario">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2 2v1"/></svg>
-            </button>
-          </div>
-          <textarea class="field-textarea comentario" id="comment-${id}"
-            placeholder="Escribí el comentario de la gestión..."></textarea>
-        </div>
-
-        <div class="field-group">
-          <label class="field-label">Notas internas</label>
-          <textarea class="field-textarea notas" id="notes-${id}"
-            placeholder="Notas adicionales (no se copian)..."></textarea>
         </div>
       </div>
 
@@ -1122,8 +1275,10 @@
       if (sel.value) {
         tagEl.innerHTML = `<span class="call-item-tag">${sel.value}</span>`;
       }
+      updateDots();
     });
 
+    updateDots();
     return id;
   }
 
@@ -1148,6 +1303,53 @@
     }));
   }
 
+  // ── Notas internas: toggle ─────────────────────────────────────────────
+  function toggleNotes(id) {
+    const section = document.getElementById(`notes-section-${id}`);
+    const toggle  = document.getElementById(`notes-toggle-${id}`);
+    if (!section || !toggle) return;
+    section.classList.toggle('open');
+    toggle.classList.toggle('open');
+  }
+
+  // ── Sidebar toggle ────────────────────────────────────────────────────
+  function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const toggle = document.getElementById('sidebarToggle');
+    if (!sidebar || !toggle) return;
+    const collapsed = sidebar.classList.toggle('collapsed');
+    toggle.textContent = collapsed ? '❮' : '❯';
+  }
+
+  function updateDots() {
+    const dotsContainer = document.getElementById('callDots');
+    if (!dotsContainer) return;
+    dotsContainer.innerHTML = '';
+    Object.values(panels).forEach(({ li }) => {
+      const id = li.dataset.id;
+      const num = String(id).padStart(2, '0');
+      const meta = document.getElementById(`li-meta-${id}`)?.textContent || '—';
+      const tag = document.getElementById(`li-tag-${id}`)?.textContent || '';
+
+      const dot = document.createElement('button');
+      dot.className = `call-dot-btn ${activeId === Number(id) ? 'active' : ''}`;
+      if (tag) dot.classList.add('has-label');
+      dot.textContent = num;
+      dot.title = `${meta}\n${tag || ''}`;
+      dot.addEventListener('click', () => selectCall(Number(id)));
+      dotsContainer.appendChild(dot);
+    });
+
+    // Botón + para nueva llamada
+    const plus = document.createElement('button');
+    plus.className = 'call-dot-btn';
+    plus.textContent = '+';
+    plus.style.fontSize = '14px';
+    plus.title = 'Nueva llamada';
+    plus.addEventListener('click', () => addCall());
+    dotsContainer.appendChild(plus);
+  }
+
   // ── Select call ───────────────────────────────────────────────────────
   function selectCall(id) {
     // Deactivate all
@@ -1164,6 +1366,9 @@
     entry.li.classList.add('active');
     entry.panel.classList.add('active');
     activeId = id;
+
+    // Actualizar dots en sidebar colapsado
+    updateDots();
   }
 
   // ── Remove call ───────────────────────────────────────────────────────
@@ -1383,6 +1588,7 @@
 
   // ── Init ──────────────────────────────────────────────────────────────
   btnAdd.addEventListener('click', () => { addCall(); updateExportBtn(); });
+  document.getElementById('sidebarToggle')?.addEventListener('click', toggleSidebar);
   checkURLParams();
   updateExportBtn();
 </script>
