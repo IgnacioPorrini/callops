@@ -13,7 +13,8 @@
   ],
   "host_permissions": [
     "<all_urls>",
-    "file://*/*"
+    "file://*/*",
+    "http://localhost/*"
   ],
   "content_scripts": [
     {
