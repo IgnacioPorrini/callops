@@ -7,10 +7,10 @@
 
   "_preferences_note": "Preferencias globales del usuario (opcional — se usan defaults si no está presente)",
   "preferences": {
-    "auto_open_call_notes": true,
-    "auto_focus_call_notes": true,
+    "auto_open_call_notes": false,
+    "auto_focus_call_notes": false,
     "play_sound_on_queue": false,
-    "show_notification_on_queue": true
+    "show_notification_on_queue": false
   },
 
   "queues": [

@@ -160,8 +160,8 @@ async function handleQueueDetected(queueName, phone, callerName, sourceTab) {
     tabs:  queueConfig.tabs || [],   // links de la cola → Call Notes
   };
 
-  // Call Notes: abrir solo si la preferencia está habilitada
-  const autoOpen = preferences?.auto_open_call_notes !== false; // default true
+  // Call Notes: abrir solo si la preferencia está habilitada (default false)
+  const autoOpen = preferences?.auto_open_call_notes === true;
   if (autoOpen) {
     handleCallNotes(config.call_notes_url, callData);
   }

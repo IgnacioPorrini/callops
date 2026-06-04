@@ -58,10 +58,10 @@ const prefSound         = document.getElementById("prefSound");
 const prefNotif         = document.getElementById("prefNotif");
 
 let preferences = {
-  auto_open_call_notes: true,
-  auto_focus_call_notes: true,
+  auto_open_call_notes: false,
+  auto_focus_call_notes: false,
   play_sound_on_queue: false,
-  show_notification_on_queue: true,
+  show_notification_on_queue: false,
 };
 
 // Estado picker activo: 'queue' | 'phone' | 'name' | null
