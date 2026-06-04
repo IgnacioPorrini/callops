@@ -485,11 +485,18 @@
 
     .field-textarea::placeholder { color: var(--text3); }
 
+    /* Field group que contiene el comentario — propagar flex */
+    .form-body-fill .field-group:has(.comentario) {
+      flex: 1;
+      min-height: 0;
+    }
+
     /* Comentario principal — expande en form-body-fill */
     .field-textarea.comentario {
       flex: 1;
       min-height: 0;
       resize: none;
+      overflow: hidden;
     }
 
     /* Notas internas — colapsadas por defecto */
