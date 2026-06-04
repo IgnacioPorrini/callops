@@ -9,7 +9,17 @@
       "Bash(git commit -m ' *)",
       "Bash(git --version)",
       "Bash(git config *)",
-      "Bash(git init *)"
+      "Bash(git init *)",
+      "Bash(gh --version)",
+      "Bash(gh auth *)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(git credential *)",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(d.get\\('html_url',''\\), d.get\\('clone_url',''\\), d.get\\('message',''\\)\\)\")",
+      "Bash(git remote *)",
+      "Bash(git commit *)",
+      "Bash(git branch *)",
+      "Bash(git fetch *)",
+      "Bash(git push *)"
     ]
   }
 }

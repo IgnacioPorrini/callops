@@ -49,6 +49,21 @@ const sdotNotes  = document.getElementById("sdotNotes");
 const sinputNotes= document.getElementById("sinputNotes");
 const sclearNotes= document.getElementById("sclearNotes");
 
+// ── Preferencias ──────────────────────────────────────────────────────
+const bodyPreferences   = document.getElementById("bodyPreferences");
+const chevPreferences   = document.getElementById("chevPreferences");
+const prefAutoOpen      = document.getElementById("prefAutoOpen");
+const prefAutoFocus     = document.getElementById("prefAutoFocus");
+const prefSound         = document.getElementById("prefSound");
+const prefNotif         = document.getElementById("prefNotif");
+
+let preferences = {
+  auto_open_call_notes: true,
+  auto_focus_call_notes: true,
+  play_sound_on_queue: false,
+  show_notification_on_queue: true,
+};
+
 // Estado picker activo: 'queue' | 'phone' | 'name' | null
 let activePicking = null;
 
@@ -68,11 +83,49 @@ function initToggles() {
     bodySelectors.style.display  = open ? "none" : "block";
     chevSelectors.classList.toggle("open", !open);
   });
+  document.getElementById("hdrPreferences").addEventListener("click", () => {
+    const open = bodyPreferences.style.display !== "none";
+    bodyPreferences.style.display  = open ? "none" : "block";
+    chevPreferences.classList.toggle("open", !open);
+  });
 }
 initToggles();
 
+// ── Cargar preferencias ────────────────────────────────────────────────
+async function loadPreferences() {
+  const stored = await chrome.storage.local.get("preferences");
+  if (stored.preferences) {
+    preferences = { ...preferences, ...stored.preferences };
+  }
+  renderPreferences();
+}
+
+function renderPreferences() {
+  prefAutoOpen.checked  = preferences.auto_open_call_notes;
+  prefAutoFocus.checked = preferences.auto_focus_call_notes;
+  prefSound.checked     = preferences.play_sound_on_queue;
+  prefNotif.checked     = preferences.show_notification_on_queue;
+}
+
+async function savePreferences() {
+  preferences = {
+    auto_open_call_notes:      prefAutoOpen.checked,
+    auto_focus_call_notes:     prefAutoFocus.checked,
+    play_sound_on_queue:       prefSound.checked,
+    show_notification_on_queue: prefNotif.checked,
+  };
+  await chrome.storage.local.set({ preferences });
+}
+
+// Listeners de preferencias
+prefAutoOpen.addEventListener("change", savePreferences);
+prefAutoFocus.addEventListener("change", savePreferences);
+prefSound.addEventListener("change", savePreferences);
+prefNotif.addEventListener("change", savePreferences);
+
 // ── Init ──────────────────────────────────────────────────────────────
 (async function init() {
+  await loadPreferences();
   const { config } = await chrome.storage.local.get("config");
   if (config) {
     renderLoadedConfig(config);

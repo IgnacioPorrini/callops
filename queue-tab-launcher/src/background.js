@@ -134,7 +134,7 @@ async function handleOpenQueueTabs(queueName) {
 
 // ── Cola detectada → inyectar call-notes + mostrar banner ────────────
 async function handleQueueDetected(queueName, phone, callerName, sourceTab) {
-  const { config } = await chrome.storage.local.get("config");
+  const { config, preferences } = await chrome.storage.local.get(["config", "preferences"]);
   if (!config) {
     console.warn("[QTL] Sin configuración.");
     return;
@@ -160,9 +160,11 @@ async function handleQueueDetected(queueName, phone, callerName, sourceTab) {
     tabs:  queueConfig.tabs || [],   // links de la cola → Call Notes
   };
 
-  // Call-notes se maneja INMEDIATAMENTE al detectar la llamada,
-  // sin esperar a que el agente haga clic en "Abrir pestañas"
-  handleCallNotes(config.call_notes_url, callData);
+  // Call Notes: abrir solo si la preferencia está habilitada
+  const autoOpen = preferences?.auto_open_call_notes !== false; // default true
+  if (autoOpen) {
+    handleCallNotes(config.call_notes_url, callData);
+  }
 
   showBannerOnTab(sourceTab, queueConfig, callData);
 }

@@ -198,6 +198,30 @@
       gap: 7px;
     }
 
+    /* ── Preference items ── */
+    .pref-item {
+      display: flex;
+      align-items: center;
+    }
+    .pref-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text2);
+      cursor: pointer;
+      user-select: none;
+      transition: color 0.15s;
+    }
+    .pref-label:hover { color: var(--text); }
+    .pref-checkbox {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+      accent-color: var(--accent2);
+    }
+
     /* ── Status card (setup view) ── */
     .status-card {
       background: var(--surface);
@@ -705,6 +729,42 @@
                 <input type="text" class="cn-input" id="sinputNotes"
                   placeholder="file:///C:/ruta/a/call-notes.html" />
               </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ③ Preferencias — colapsada por defecto -->
+      <div class="toggle-section">
+        <button class="toggle-header" id="hdrPreferences">
+          <span class="toggle-title">⚙ Preferencias</span>
+          <span class="toggle-chevron" id="chevPreferences">▾</span>
+        </button>
+        <div id="bodyPreferences" style="display:none">
+          <div class="toggle-body-inner">
+            <div class="pref-item">
+              <label for="prefAutoOpen" class="pref-label">
+                <input type="checkbox" id="prefAutoOpen" class="pref-checkbox" />
+                Abrir Call Notes automáticamente
+              </label>
+            </div>
+            <div class="pref-item">
+              <label for="prefAutoFocus" class="pref-label">
+                <input type="checkbox" id="prefAutoFocus" class="pref-checkbox" />
+                Auto-focus en Call Notes
+              </label>
+            </div>
+            <div class="pref-item">
+              <label for="prefSound" class="pref-label">
+                <input type="checkbox" id="prefSound" class="pref-checkbox" />
+                Sonido al detectar cola
+              </label>
+            </div>
+            <div class="pref-item">
+              <label for="prefNotif" class="pref-label">
+                <input type="checkbox" id="prefNotif" class="pref-checkbox" />
+                Notificación al detectar cola
+              </label>
             </div>
           </div>
         </div>

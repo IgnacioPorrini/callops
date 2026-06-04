@@ -5,6 +5,14 @@
   "_call_notes_note": "call_notes_url: URL de call-notes.html. QTL siempre la inyecta o abre automáticamente en cada llamada, sin necesidad de incluirla en los tabs de cada cola.",
   "call_notes_url": "file:///C:/ruta/a/queue-tab-launcher/call-notes.html",
 
+  "_preferences_note": "Preferencias globales del usuario (opcional — se usan defaults si no está presente)",
+  "preferences": {
+    "auto_open_call_notes": true,
+    "auto_focus_call_notes": true,
+    "play_sound_on_queue": false,
+    "show_notification_on_queue": true
+  },
+
   "queues": [
     {
       "name": "Cola Ventas",
