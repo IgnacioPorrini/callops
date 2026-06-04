@@ -186,9 +186,23 @@ async function processFile(file) {
     const err = validateConfig(config);
     if (err) { showToast(err, "err"); appendLog("err", err); return; }
 
-    await chrome.storage.local.set({ config });
-    renderLoadedConfig(config);
-    appendLog("ok", `Config cargada: "${file.name}" — ${config.queues.length} cola(s)`);
+    // Extraer preferencias si vienen en el JSON
+    const loadedPrefs = config.preferences || null;
+    const configToSave = { ...config };
+    delete configToSave.preferences; // No guardar preferencias dentro de config
+
+    await chrome.storage.local.set({
+      config: configToSave,
+      ...(loadedPrefs && { preferences: loadedPrefs })
+    });
+
+    // Recargar preferencias si vinieron en el JSON
+    if (loadedPrefs) {
+      await loadPreferences();
+    }
+
+    renderLoadedConfig(configToSave);
+    appendLog("ok", `Config cargada: "${file.name}" — ${configToSave.queues.length} cola(s)${loadedPrefs ? " + preferencias" : ""}`);
     showToast("✓ Configuración cargada", "ok");
 
   } catch (e) {
@@ -349,11 +363,15 @@ chrome.runtime.onMessage.addListener((msg) => {
 
 // ── Exportar config ───────────────────────────────────────────────────
 btnExportConfig.addEventListener("click", async () => {
-  const { config } = await chrome.storage.local.get("config");
+  const { config, preferences: storedPrefs } = await chrome.storage.local.get(["config", "preferences"]);
   if (!config) { showToast("Sin configuración para exportar", ""); return; }
-  downloadFile("qtl-config.json", JSON.stringify(config, null, 2), "application/json");
-  showToast("✓ Config exportada", "ok");
-  appendLog("ok", "Configuración exportada como JSON");
+  const exportData = {
+    ...config,
+    preferences: storedPrefs || preferences,
+  };
+  downloadFile("qtl-config.json", JSON.stringify(exportData, null, 2), "application/json");
+  showToast("✓ Config + preferencias exportadas", "ok");
+  appendLog("ok", "Configuración y preferencias exportadas como JSON");
 });
 
 // ── Render config cargada ─────────────────────────────────────────────
