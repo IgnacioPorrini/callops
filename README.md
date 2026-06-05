@@ -5,7 +5,7 @@
 
 **Versiones:**
 - **Queue Tab Launcher** v1.7.0 — Extensión Chrome + Preferencias de usuario
-- **Call Notes** v2.1.0 — Aplicación con localStorage persistente
+- **Call Notes** v2.2.0 — localStorage persistente + búsqueda de llamadas
 
 ---
 
@@ -258,6 +258,15 @@ Todas las llamadas se guardan automáticamente en el navegador:
 
 **Nota:** El localStorage persiste incluso si cierras completamente Chrome. Solo se borra si vacías el caché o usas Incógnito.
 
+### Búsqueda de llamadas (v2.2.0)
+
+- Input de búsqueda en el sidebar → filtra en tiempo real
+- Busca en **todos los campos**: teléfono, nombre, cola, etiqueta, comentario, notas
+- Case insensitive — "juan" encuentra "JUAN", "Juan", etc.
+- Se filtra mientras escribes → solo muestra coincidencias
+- Limpiar el input → muestra todas las llamadas nuevamente
+- Mensaje "Sin resultados" si no hay coincidencias
+
 ### Multi-llamada
 
 - Sidebar con todas las llamadas de la sesión
@@ -321,4 +330,4 @@ El JSON incluye ejemplos con `title` en cada pestaña y los campos opcionales do
 
 ---
 
-*Queue Tab Launcher v1.7.0 · Call Notes v2.1.0 · @author Ignacio Porrini · built with Claude Sonnet (Anthropic)*
+*Queue Tab Launcher v1.7.0 · Call Notes v2.2.0 · @author Ignacio Porrini · built with Claude Sonnet (Anthropic)*
