@@ -1156,6 +1156,19 @@
     }
   }
 
+  // Obtener el estado actual del filtro
+  function getActiveFilter() {
+    return searchInput ? searchInput.value.toLowerCase().trim() : '';
+  }
+
+  // Limpiar el filtro de búsqueda
+  function clearSearchFilter() {
+    if (searchInput) {
+      searchInput.value = '';
+      filterCalls('');
+    }
+  }
+
   const callList  = document.getElementById('callList');
   const main      = document.getElementById('main');
   const emptyState= document.getElementById('emptyState');
@@ -1433,6 +1446,12 @@
 
     updateDots();
     saveToStorage();
+
+    // Auto-limpiar filtro de búsqueda si es una nueva llamada (no restaurada)
+    if (!providedId) {
+      clearSearchFilter();
+    }
+
     return id;
   }
 
@@ -1474,6 +1493,11 @@
     const collapsed = sidebar.classList.toggle('collapsed');
     toggle.textContent = collapsed ? '❮' : '❯';
     localStorage.setItem(SIDEBAR_COLLAPSED_KEY, collapsed ? 'true' : 'false');
+
+    // Reapllicar filtro de búsqueda al expandir para mostrar nuevamente los filtrados
+    if (!collapsed && searchInput) {
+      filterCalls(searchInput.value);
+    }
   }
 
   function updateDots() {
