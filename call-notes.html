@@ -92,6 +92,32 @@
     }
     .sidebar-toggle:hover { border-color: var(--accent); color: var(--accent); }
 
+    .sidebar-search {
+      padding: 10px 8px 8px;
+      flex-shrink: 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .sidebar-search input {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      background: var(--surface2);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 13px;
+      transition: all 0.15s;
+    }
+    .sidebar-search input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-dim);
+    }
+    .sidebar-search input::placeholder {
+      color: var(--text3);
+    }
+    .sidebar.collapsed .sidebar-search { display: none; }
+
     .app-name {
       font-family: var(--mono);
       font-size: 12px;
@@ -992,6 +1018,10 @@
       </div>
     </div>
 
+    <div class="sidebar-search">
+      <input type="text" id="searchInput" placeholder="🔍 Buscar llamadas..." />
+    </div>
+
     <div class="call-list" id="callList"></div>
     <div class="call-dots" id="callDots"></div>
 
@@ -1077,6 +1107,52 @@
       }
     } catch (e) {
       console.error("[QTL] Error al restaurar llamadas:", e);
+    }
+  }
+
+  function filterCalls(searchText) {
+    const text = searchText.toLowerCase().trim();
+    const items = callList.querySelectorAll('.call-item');
+    let visibleCount = 0;
+
+    items.forEach(item => {
+      const id = Number(item.dataset.id);
+      const queue = document.getElementById(`f-queue-${id}`)?.value || '';
+      const phone = document.getElementById(`f-phone-${id}`)?.value || '';
+      const name = document.getElementById(`f-name-${id}`)?.value || '';
+      const label = document.getElementById(`select-${id}`)?.value || '';
+      const comment = document.getElementById(`comment-${id}`)?.value || '';
+      const notes = document.getElementById(`notes-${id}`)?.value || '';
+
+      // Buscar en todos los campos (case insensitive)
+      const allText = `${queue} ${phone} ${name} ${label} ${comment} ${notes}`.toLowerCase();
+      const matches = text === '' || allText.includes(text);
+
+      if (matches) {
+        item.style.display = '';
+        visibleCount++;
+      } else {
+        item.style.display = 'none';
+      }
+    });
+
+    // Mostrar mensaje si no hay resultados
+    let noResults = document.getElementById('searchNoResults');
+    if (visibleCount === 0 && text !== '') {
+      if (!noResults) {
+        noResults = document.createElement('div');
+        noResults.id = 'searchNoResults';
+        noResults.style.cssText = `
+          padding: 20px 12px;
+          text-align: center;
+          color: var(--text3);
+          font-size: 12px;
+        `;
+        callList.appendChild(noResults);
+      }
+      noResults.textContent = 'Sin resultados';
+    } else if (noResults) {
+      noResults.remove();
     }
   }
 
@@ -1673,6 +1749,14 @@
   // ── Init ──────────────────────────────────────────────────────────────
   btnAdd.addEventListener('click', () => { addCall(); updateExportBtn(); });
   document.getElementById('sidebarToggle')?.addEventListener('click', toggleSidebar);
+
+  // Listener para búsqueda de llamadas
+  const searchInput = document.getElementById('searchInput');
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      filterCalls(e.target.value);
+    });
+  }
 
   // Restaurar desde localStorage
   restoreFromStorage();
