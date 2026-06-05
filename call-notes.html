@@ -1029,6 +1029,57 @@
   let activeId = null;
   const panels = {}; // id → { li, panel }
 
+  // ── LocalStorage ──────────────────────────────────────────────────────
+  const STORAGE_KEY = "qtl_calls";
+  const ACTIVE_ID_KEY = "qtl_active_id";
+  const SIDEBAR_COLLAPSED_KEY = "qtl_sidebar_collapsed";
+
+  function saveToStorage() {
+    const callsData = Object.entries(panels).map(([id, { panel }]) => {
+      const callId = Number(id);
+      return {
+        id: callId,
+        queue: document.getElementById(`f-queue-${callId}`)?.value || "",
+        phone: document.getElementById(`f-phone-${callId}`)?.value || "",
+        name: document.getElementById(`f-name-${callId}`)?.value || "",
+        label: document.getElementById(`select-${callId}`)?.value || "",
+        comment: document.getElementById(`comment-${callId}`)?.value || "",
+        notes: document.getElementById(`notes-${callId}`)?.value || "",
+        timestamp: panel.dataset.timestamp || new Date().toISOString(),
+      };
+    });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(callsData));
+    localStorage.setItem(ACTIVE_ID_KEY, activeId || "");
+  }
+
+  function restoreFromStorage() {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (!stored) return;
+    try {
+      const callsData = JSON.parse(stored);
+      counter = 0;
+      for (const call of callsData) {
+        counter = Math.max(counter, call.id);
+        addCall({
+          id: call.id,
+          queue: call.queue,
+          phone: call.phone,
+          name: call.name,
+          label: call.label,
+          comment: call.comment,
+          notes: call.notes,
+          timestamp: call.timestamp,
+        });
+      }
+      const storedActiveId = localStorage.getItem(ACTIVE_ID_KEY);
+      if (storedActiveId && panels[storedActiveId]) {
+        selectCall(Number(storedActiveId));
+      }
+    } catch (e) {
+      console.error("[QTL] Error al restaurar llamadas:", e);
+    }
+  }
+
   const callList  = document.getElementById('callList');
   const main      = document.getElementById('main');
   const emptyState= document.getElementById('emptyState');
@@ -1101,10 +1152,13 @@
 
   // ── Create call ───────────────────────────────────────────────────────
   function addCall(opts = {}) {
-    counter++;
-    const id = counter;
-    const { queue = null, phone = null, name = null, tabs = [] } = opts;
-    const callTime = new Date().toLocaleTimeString('es-UY', { hour: '2-digit', minute: '2-digit' });
+    const { id: providedId = null, queue = null, phone = null, name = null, tabs = [], label = "", comment = "", notes = "", timestamp = null } = opts;
+
+    if (!providedId) counter++;
+    const id = providedId || counter;
+    const callTime = timestamp
+      ? new Date(timestamp).toLocaleTimeString('es-UY', { hour: '2-digit', minute: '2-digit' })
+      : new Date().toLocaleTimeString('es-UY', { hour: '2-digit', minute: '2-digit' });
 
     // Sidebar item
     const li = document.createElement('div');
@@ -1136,6 +1190,7 @@
     const panel = document.createElement('div');
     panel.className = 'form-panel';
     panel.id = `panel-${id}`;
+    panel.dataset.timestamp = timestamp || new Date().toISOString();
 
     panel.innerHTML = `
       <div class="panel-header">
@@ -1269,19 +1324,39 @@
     main.appendChild(panel);
     panels[id] = { li, panel, tabs };
 
+    // Restaurar valores si vinieron del storage
+    if (label) document.getElementById(`select-${id}`).value = label;
+    if (comment) document.getElementById(`comment-${id}`).value = comment;
+    if (notes) document.getElementById(`notes-${id}`).value = notes;
+
     selectCall(id);
 
     // Live label preview in sidebar
     const sel = document.getElementById(`select-${id}`);
+    const commentEl = document.getElementById(`comment-${id}`);
+    const notesEl = document.getElementById(`notes-${id}`);
+    const phoneEl = document.getElementById(`f-phone-${id}`);
+    const queueEl = document.getElementById(`f-queue-${id}`);
+    const nameEl = document.getElementById(`f-name-${id}`);
+
+    // Listeners para guardar automáticamente
+    const saveChangeListener = () => saveToStorage();
     sel.addEventListener('change', () => {
       const tagEl = document.getElementById(`li-tag-${id}`);
       if (sel.value) {
         tagEl.innerHTML = `<span class="call-item-tag">${sel.value}</span>`;
       }
       updateDots();
+      saveToStorage();
     });
+    commentEl.addEventListener('input', saveChangeListener);
+    notesEl.addEventListener('input', saveChangeListener);
+    phoneEl.addEventListener('input', saveChangeListener);
+    queueEl.addEventListener('input', saveChangeListener);
+    nameEl.addEventListener('input', saveChangeListener);
 
     updateDots();
+    saveToStorage();
     return id;
   }
 
@@ -1322,6 +1397,7 @@
     if (!sidebar || !toggle) return;
     const collapsed = sidebar.classList.toggle('collapsed');
     toggle.textContent = collapsed ? '❮' : '❯';
+    localStorage.setItem(SIDEBAR_COLLAPSED_KEY, collapsed ? 'true' : 'false');
   }
 
   function updateDots() {
@@ -1372,6 +1448,9 @@
 
     // Actualizar dots en sidebar colapsado
     updateDots();
+
+    // Guardar activeId en storage
+    saveToStorage();
   }
 
   // ── Remove call ───────────────────────────────────────────────────────
@@ -1390,6 +1469,7 @@
       emptyState.classList.add('show');
     }
     updateExportBtn();
+    saveToStorage();
   }
 
   // ── Copy functions ────────────────────────────────────────────────────
@@ -1592,6 +1672,18 @@
   // ── Init ──────────────────────────────────────────────────────────────
   btnAdd.addEventListener('click', () => { addCall(); updateExportBtn(); });
   document.getElementById('sidebarToggle')?.addEventListener('click', toggleSidebar);
+
+  // Restaurar desde localStorage
+  restoreFromStorage();
+
+  // Restaurar estado colapsado del sidebar
+  const sidebarCollapsed = localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true';
+  const sidebar = document.getElementById('sidebar');
+  if (sidebarCollapsed && sidebar) {
+    sidebar.classList.add('collapsed');
+    document.getElementById('sidebarToggle').textContent = '❮';
+  }
+
   checkURLParams();
   updateExportBtn();
 </script>
