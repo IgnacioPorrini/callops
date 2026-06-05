@@ -1537,8 +1537,9 @@
     try { tabs = JSON.parse(params.get('tabs') || '[]'); } catch {}
     if (queue || phone || name) {
       addCall({ queue, phone, name, tabs });
-    } else {
-      addCall(); // llamada vacía por defecto
+    } else if (Object.keys(panels).length === 0) {
+      // Solo crear llamada vacía si no hay llamadas (ni en localStorage ni en parámetros)
+      addCall();
     }
   }
 
