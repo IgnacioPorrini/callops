@@ -1450,6 +1450,10 @@
     // Auto-limpiar filtro de búsqueda si es una nueva llamada (no restaurada)
     if (!providedId) {
       clearSearchFilter();
+      // Auto-focus en el campo de comentario para nueva llamada
+      setTimeout(() => {
+        document.getElementById(`comment-${id}`)?.focus();
+      }, 50);
     }
 
     return id;
