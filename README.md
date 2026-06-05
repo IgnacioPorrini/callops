@@ -1,7 +1,11 @@
 # Queue Tab Launcher + Call Notes
-### v1.5.4 · Extensión Chrome para Contact Center
+### Extensión Chrome para Contact Center
 
 > Detecta colas de llamadas entrantes, abre automáticamente las pestañas de trabajo y registra cada llamada con sus datos, comentarios y gestión.
+
+**Versiones:**
+- **Queue Tab Launcher** v1.7.0 — Extensión Chrome + Preferencias de usuario
+- **Call Notes** v2.1.0 — Aplicación con localStorage persistente
 
 ---
 
@@ -68,6 +72,31 @@ Si no sabés el selector CSS del CRM, usá el picker integrado:
 4. Click → el selector se guarda automáticamente
 
 Disponible para: cola, teléfono y nombre del llamante.
+
+### 3 — Preferencias de usuario
+
+Configurar comportamientos globales desde el JSON (v1.7.0):
+
+```json
+{
+  "preferences": {
+    "auto_open_call_notes": false,
+    "auto_focus_call_notes": false,
+    "play_sound_on_queue": false,
+    "show_notification_on_queue": false
+  },
+  ...
+}
+```
+
+| Preferencia | Descripción | Default |
+|-------------|-------------|---------|
+| `auto_open_call_notes` | Abrir Call Notes automáticamente al detectar llamada | ✕ |
+| `auto_focus_call_notes` | Traer Call Notes a primer plano (foco de ventana) | ✕ |
+| `play_sound_on_queue` | Sonar beep cuando entra una llamada | ✕ |
+| `show_notification_on_queue` | Mostrar notificación del navegador | ✕ |
+
+**Nota:** Todos los defaults están deshabilitados. Activar desde el JSON según necesidad.
 
 ---
 
@@ -198,11 +227,43 @@ El cliente consultó por el plan empresarial...
 - **Exportar sesión**: modal con opciones CSV (Excel/Sheets), JSON (backup) o ambos
   - Incluye todos los campos: teléfono, cola, nombre, etiqueta, comentario, notas, timestamp
 
+### localStorage — Persistencia de datos (v2.1.0)
+
+Todas las llamadas se guardan automáticamente en el navegador:
+
+- **Guardado automático**: cada cambio en cualquier campo se persiste
+- **Restauración al refrescar**: al recargar la página, se recuperan todas las llamadas
+- **Estado preservado**: se guarda la llamada activa seleccionada
+- **UI persistente**: el estado colapsado del sidebar también se restaura
+
+```javascript
+// localStorage estructura
+{
+  "qtl_calls": [
+    {
+      "id": 1,
+      "queue": "Cola Ventas",
+      "phone": "091234567",
+      "name": "Juan Pérez",
+      "label": "Contacto efectivo",
+      "comment": "El cliente preguntó por...",
+      "notes": "Nota interna",
+      "timestamp": "2026-06-05T14:30:00Z"
+    }
+  ],
+  "qtl_active_id": 1,
+  "qtl_sidebar_collapsed": false
+}
+```
+
+**Nota:** El localStorage persiste incluso si cierras completamente Chrome. Solo se borra si vacías el caché o usas Incógnito.
+
 ### Multi-llamada
 
 - Sidebar con todas las llamadas de la sesión
 - Cada item muestra: número `#01`, horario, teléfono/nombre, etiqueta activa
 - Navegar entre llamadas sin perder datos
+- **Todas las llamadas se guardan automáticamente** en el navegador
 
 ---
 
@@ -232,20 +293,21 @@ CRM (Contact Center)
 
 ```
 queue-tab-launcher/          ← carpeta que se carga en chrome://extensions
-├── manifest.json            v1.5.4
-├── popup.html               Popup de la extensión
+├── manifest.json            v1.7.0 (Manifest v3, Service Worker)
+├── popup.html               Popup de la extensión + preferencias
 ├── editor.html              Editor de colas (pestaña completa)
 ├── src/
-│   ├── background.js        Service Worker — detección, banner, pestañas
-│   ├── popup.js             Lógica del popup
+│   ├── background.js        Service Worker — detección, banner, pestañas, preferencias
+│   ├── popup.js             Lógica del popup + gestión de preferencias
 │   ├── content.js           DOM observer + picker visual + relay
 │   └── editor.js            Lógica del editor de colas
 ├── icons/
 │   └── icon16/48/128.png
-└── qtl-config-default.json  Plantilla de configuración
+└── qtl-config-default.json  Plantilla de configuración + preferencias (v1.7.0)
 
 callOps/
-├── call-notes.html          Aplicación de notas de llamadas
+├── call-notes.html          Aplicación de notas v2.1.0 (localStorage persistente)
+├── README.md                Este archivo
 └── qtl-mock.html            Simulador del CRM (para pruebas)
 ```
 
@@ -259,4 +321,4 @@ El JSON incluye ejemplos con `title` en cada pestaña y los campos opcionales do
 
 ---
 
-*Queue Tab Launcher v1.5.4 · @author Ignacio Porrini · built with Claude Sonnet (Anthropic)*
+*Queue Tab Launcher v1.7.0 · Call Notes v2.1.0 · @author Ignacio Porrini · built with Claude Sonnet (Anthropic)*
