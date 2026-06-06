@@ -148,7 +148,9 @@
       text-transform: uppercase;
       white-space: nowrap;
       transition: opacity 0.2s;
+      text-decoration: none;
     }
+    .app-subtitle:hover { color: var(--accent); }
     .sidebar.collapsed .app-subtitle { opacity: 0; }
 
     /* ── Call list (expanded) ── */
@@ -609,12 +611,16 @@
 
     .btn-danger {
       background: transparent;
-      color: var(--text3);
-      border: 1px solid transparent;
+      color: var(--red);
+      border: 1px solid rgba(220,38,38,0.35);
       margin-left: auto;
+      font-weight: 500;
     }
 
-    .btn-danger:hover { color: var(--red); border-color: rgba(248,113,113,0.3); }
+    .btn-danger:hover {
+      background: rgba(220,38,38,0.07);
+      border-color: var(--red);
+    }
 
     /* ── Toast ── */
     #toast {
@@ -1091,13 +1097,13 @@
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
       <div class="sidebar-header-top">
-        <button class="sidebar-toggle" id="sidebarToggle" title="Plegar/expandir sidebar">❯</button>
+        <button class="sidebar-toggle" id="sidebarToggle" title="Plegar/expandir sidebar">❮</button>
         <div>
           <div class="app-name">
             <span class="app-name-dot"></span>
             Call Notes
           </div>
-          <div class="app-subtitle">// QTL · session log</div>
+          <a class="app-subtitle" href="https://github.com/IgnacioPorrini/callops" target="_blank">v2.4.0 · callops ↗</a>
         </div>
       </div>
     </div>
