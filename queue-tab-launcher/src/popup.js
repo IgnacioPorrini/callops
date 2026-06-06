@@ -388,21 +388,83 @@ function renderLoadedConfig(config) {
   queueBtns.innerHTML = "";
   for (const q of config.queues) {
     const tabCount = q.tabs.length;
-    const btn = document.createElement("button");
-    btn.className = "queue-launch-btn";
-    btn.innerHTML = `
+    const queueItem = document.createElement("div");
+    queueItem.className = "queue-item";
+
+    const header = document.createElement("button");
+    header.className = "queue-item-header";
+    header.innerHTML = `
       <div>
         <div class="queue-launch-btn-name">${q.name}</div>
         <div class="queue-launch-btn-meta">${tabCount} pestaña${tabCount !== 1 ? "s" : ""}</div>
       </div>
-      <span class="queue-launch-btn-arrow">▶</span>
+      <div class="queue-item-toggle">
+        <span class="queue-item-toggle-chevron">▾</span>
+        <span class="queue-launch-btn-arrow">▶</span>
+      </div>
     `;
-    btn.addEventListener("click", () => {
+
+    // Click en header para abrir todas las pestañas
+    header.addEventListener("click", (e) => {
+      // Si es click en el chevron, expandir/colapsar (accordion)
+      if (e.target.closest(".queue-item-toggle-chevron")) {
+        e.stopPropagation();
+        const linksList = queueItem.querySelector(".queue-links-list");
+        const chevron = header.querySelector(".queue-item-toggle-chevron");
+        const isExpanded = !linksList.classList.contains("collapsed");
+
+        // Accordion: Colapsar todos primero
+        document.querySelectorAll("#queueBtns .queue-item").forEach(item => {
+          const list = item.querySelector(".queue-links-list");
+          const chev = item.querySelector(".queue-item-toggle-chevron");
+          const hdr = item.querySelector(".queue-item-header");
+          if (list) {
+            list.classList.add("collapsed");
+            chev.classList.remove("open");
+            hdr.classList.remove("expanded");
+          }
+        });
+
+        // Si no estaba expandido, expandir este
+        if (!isExpanded) {
+          linksList.classList.remove("collapsed");
+          header.classList.add("expanded");
+          chevron.classList.add("open");
+        }
+        return;
+      }
+      // Else, abrir todas las pestañas
       chrome.runtime.sendMessage({ type: "OPEN_QUEUE_TABS", queueName: q.name });
       appendLog("ok", `Abriendo manualmente: "${q.name}"`);
       showToast(`Abriendo: ${q.name}`, "ok");
     });
-    queueBtns.appendChild(btn);
+
+    queueItem.appendChild(header);
+
+    // Crear lista de links
+    if (q.tabs.length > 0) {
+      const linksList = document.createElement("div");
+      linksList.className = "queue-links-list collapsed"; // Colapsado por defecto
+
+      for (const tab of q.tabs) {
+        const linkItem = document.createElement("div");
+        linkItem.className = "queue-link-item";
+        const title = tab.title || new URL(tab.url).hostname;
+        linkItem.innerHTML = `
+          <span class="queue-link-label">${title}</span>
+          <span class="queue-link-icon">↗</span>
+        `;
+        linkItem.addEventListener("click", () => {
+          chrome.tabs.create({ url: tab.url });
+          appendLog("ok", `Abriendo link: "${title}" de "${q.name}"`);
+        });
+        linksList.appendChild(linkItem);
+      }
+
+      queueItem.appendChild(linksList);
+    }
+
+    queueBtns.appendChild(queueItem);
   }
 
   // Badge con total de colas
@@ -541,10 +603,10 @@ function parseCSV(text) {
 function filterQueues(query) {
   const q = query.trim().toLowerCase();
   let visible = 0;
-  document.querySelectorAll("#queueBtns .queue-launch-btn").forEach(btn => {
-    const name = btn.querySelector(".queue-launch-btn-name")?.textContent.toLowerCase() || "";
+  document.querySelectorAll("#queueBtns .queue-item").forEach(item => {
+    const name = item.querySelector(".queue-launch-btn-name")?.textContent.toLowerCase() || "";
     const match = !q || name.includes(q);
-    btn.style.display = match ? "" : "none";
+    item.style.display = match ? "" : "none";
     if (match) visible++;
   });
   queueSearchClear.style.display = q ? "block" : "none";

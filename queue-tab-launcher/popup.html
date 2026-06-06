@@ -364,7 +364,7 @@
       display: flex;
       flex-direction: column;
       gap: 6px;
-      max-height: 180px;
+      max-height: 280px;
       overflow-y: auto;
       padding-right: 2px;
     }
@@ -394,6 +394,142 @@
     .queue-launch-btn-name { font-size: 12px; font-weight: 600; }
     .queue-launch-btn-meta { font-size: 10px; color: var(--muted); font-family: var(--mono); margin-top: 2px; }
     .queue-launch-btn-arrow { color: var(--accent2); font-size: 13px; flex-shrink: 0; margin-left: 8px; }
+
+    /* ── Queue links (expandible) ── */
+    .queue-item {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      transition: all 0.15s;
+      margin: 0;
+      padding: 0;
+    }
+
+    .queue-item:hover {
+      border-color: var(--accent2);
+      background: rgba(123,97,255,0.07);
+    }
+
+    .queue-item-header {
+      width: 100%;
+      padding: 10px 14px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.15s;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-family: var(--sans);
+      margin: 0;
+      flex-shrink: 0;
+      gap: 12px;
+      min-height: 44px;
+    }
+
+    .queue-item-header:active { transform: scale(0.98); }
+
+    .queue-item-toggle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin-left: auto;
+      padding: 0;
+      cursor: pointer;
+      flex-shrink: 0;
+      height: 36px;
+    }
+
+    .queue-item-toggle-chevron {
+      font-size: 18px;
+      color: var(--accent2);
+      transition: transform 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      padding: 6px 8px;
+      border-radius: 5px;
+      transition: all 0.15s;
+      flex-shrink: 0;
+      width: 32px;
+      height: 32px;
+    }
+
+    .queue-item-toggle-chevron:hover {
+      background: rgba(123,97,255,0.1);
+    }
+
+    .queue-item-toggle-chevron.open { transform: rotate(180deg); }
+
+    .queue-launch-btn-arrow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+    }
+
+    .queue-links-list {
+      background: var(--surface2);
+      border-top: 1px solid var(--border);
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      max-height: 180px;
+      overflow-y: auto;
+      margin: 0;
+      flex-shrink: 1;
+      min-height: 0;
+    }
+
+    .queue-links-list.collapsed {
+      display: none !important;
+    }
+
+    .queue-link-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text);
+    }
+
+    .queue-link-item:hover {
+      border-color: var(--accent2);
+      background: rgba(123,97,255,0.07);
+    }
+
+    .queue-link-item:active { transform: scale(0.98); }
+
+    .queue-link-label {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--accent2);
+    }
+
+    .queue-link-icon {
+      font-size: 11px;
+      color: var(--muted);
+      flex-shrink: 0;
+    }
 
     /* ── Op toolbar ── */
     .op-toolbar {
