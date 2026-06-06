@@ -217,6 +217,28 @@
       border: 1px solid transparent;
       margin-bottom: 3px;
       position: relative;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .call-item-checkbox {
+      width: 18px;
+      height: 18px;
+      min-width: 18px;
+      margin-top: 2px;
+      cursor: pointer;
+      accent-color: var(--accent);
+      display: none;
+    }
+
+    .call-item.selection-mode .call-item-checkbox {
+      display: block;
+    }
+
+    .call-item-content {
+      flex: 1;
+      min-width: 0;
     }
 
     .call-item:hover { background: var(--surface2); }
@@ -277,6 +299,79 @@
       text-overflow: ellipsis;
       white-space: nowrap;
       font-family: var(--mono);
+    }
+
+    /* ── Selection mode ── */
+    .sidebar-header-select {
+      width: 100%;
+      padding: 6px 8px;
+      background: transparent;
+      border: none;
+      color: var(--accent);
+      font-family: var(--mono);
+      font-size: 10px;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.15s;
+      display: none;
+    }
+
+    .sidebar-header-select.show {
+      display: block;
+    }
+
+    .sidebar-header-select:hover {
+      background: var(--surface2);
+    }
+
+    .sidebar-selection-bar {
+      padding: 10px 8px;
+      background: var(--accent-dim);
+      border-top: 1px solid var(--accent);
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+      align-items: stretch;
+    }
+
+    .sidebar-selection-bar.show {
+      display: flex;
+    }
+
+    .sidebar-selection-info {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--accent);
+      text-align: center;
+    }
+
+    .sidebar-selection-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    .btn-delete-multi,
+    .btn-deselect-all {
+      flex: 1;
+      padding: 8px;
+      border: 1px solid var(--accent);
+      border-radius: 5px;
+      background: transparent;
+      color: var(--accent);
+      font-family: var(--mono);
+      font-size: 10px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .btn-delete-multi:hover {
+      background: var(--accent);
+      color: white;
+    }
+
+    .btn-deselect-all:hover {
+      border-color: var(--text3);
+      color: var(--text3);
     }
 
     /* ── Add button ── */
@@ -1100,6 +1195,7 @@
           <div class="app-subtitle">// QTL · session log</div>
         </div>
       </div>
+      <button class="sidebar-header-select" id="btnSelectMode" title="Modo de selección múltiple">☑ Seleccionar</button>
     </div>
 
     <div class="sidebar-search">
@@ -1108,6 +1204,14 @@
 
     <div class="call-list" id="callList"></div>
     <div class="call-dots" id="callDots"></div>
+
+    <div class="sidebar-selection-bar" id="selectionBar">
+      <div class="sidebar-selection-info" id="selectionInfo">0 seleccionadas</div>
+      <div class="sidebar-selection-actions">
+        <button class="btn-delete-multi" id="btnDeleteMulti">🗑 Eliminar</button>
+        <button class="btn-deselect-all" id="btnDeselectAll">✕</button>
+      </div>
+    </div>
 
     <div class="sidebar-footer">
       <button class="btn-add" id="btnAdd">
@@ -1338,15 +1442,32 @@
     li.className = 'call-item';
     li.dataset.id = id;
     li.innerHTML = `
-      <div class="call-item-title">
-        <span>Llamada</span>
-        <span class="call-item-num">#${String(id).padStart(2,'0')}</span>
-        <span style="margin-left:auto;font-size:9px;color:var(--text3);font-family:var(--mono)">${callTime}</span>
+      <input type="checkbox" class="call-item-checkbox" data-call-id="${id}" />
+      <div class="call-item-content">
+        <div class="call-item-title">
+          <span>Llamada</span>
+          <span class="call-item-num">#${String(id).padStart(2,'0')}</span>
+          <span style="margin-left:auto;font-size:9px;color:var(--text3);font-family:var(--mono)">${callTime}</span>
+        </div>
+        <div class="call-item-meta" id="li-meta-${id}">${phone || '—'}</div>
+        <div id="li-tag-${id}"></div>
       </div>
-      <div class="call-item-meta" id="li-meta-${id}">${phone || '—'}</div>
-      <div id="li-tag-${id}"></div>
     `;
-    li.addEventListener('click', () => selectCall(id));
+
+    // Click en checkbox
+    const checkbox = li.querySelector('.call-item-checkbox');
+    checkbox.addEventListener('click', (e) => {
+      e.stopPropagation();
+      updateSelectionInfo();
+    });
+
+    // Click en item (si no está en modo selección, abre la llamada)
+    li.addEventListener('click', () => {
+      if (!document.getElementById('sidebar').classList.contains('selection-mode')) {
+        selectCall(id);
+      }
+    });
+
     callList.appendChild(li);
 
     // Update sidebar meta with phone/name and queue tag
@@ -1669,12 +1790,20 @@
 
     const closeModal = () => document.getElementById('deleteOverlay')?.remove();
 
-    document.getElementById('delCancel').onclick = closeModal;
-    document.getElementById('delConfirm').onclick = () => {
-      performDelete(id);
+    const closingModal = () => {
+      document.activeElement?.blur(); // Quitar focus de cualquier botón
       closeModal();
     };
-    overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+
+    document.getElementById('delCancel').onclick = closingModal;
+    document.getElementById('delConfirm').onclick = () => {
+      performDelete(id);
+      closingModal();
+    };
+    overlay.addEventListener('click', e => { if (e.target === overlay) closingModal(); });
+
+    // Auto-focus en botón cancelar
+    document.getElementById('delCancel').focus();
   }
 
   function performDelete(id) {
@@ -1898,9 +2027,107 @@
     btnExport.disabled = Object.keys(panels).length === 0;
   }
 
+  // ── Modo selección múltiple ─────────────────────────────────────────────
+  function toggleSelectionMode() {
+    const sidebar = document.getElementById('sidebar');
+    const isSelecting = sidebar.classList.toggle('selection-mode');
+    const btnSelectMode = document.getElementById('btnSelectMode');
+    const selectionBar = document.getElementById('selectionBar');
+    const callItems = document.querySelectorAll('.call-item');
+
+    btnSelectMode.classList.toggle('show', isSelecting);
+    selectionBar.classList.toggle('show', isSelecting);
+
+    if (!isSelecting) {
+      // Desactivar selección: deseleccionar todas y ocultar checkboxes
+      document.querySelectorAll('.call-item-checkbox').forEach(cb => { cb.checked = false; });
+    }
+    updateSelectionInfo();
+  }
+
+  function updateSelectionInfo() {
+    const checked = document.querySelectorAll('.call-item-checkbox:checked').length;
+    const selectionInfo = document.getElementById('selectionInfo');
+    const selectionBar = document.getElementById('selectionBar');
+    const btnDeleteMulti = document.getElementById('btnDeleteMulti');
+
+    selectionInfo.textContent = `${checked} seleccionada${checked !== 1 ? 's' : ''}`;
+    btnDeleteMulti.disabled = checked === 0;
+  }
+
+  function deleteMultipleConfirm() {
+    const checkedBoxes = document.querySelectorAll('.call-item-checkbox:checked');
+    if (checkedBoxes.length === 0) return;
+
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.id = 'deleteMultiOverlay';
+
+    overlay.innerHTML = `
+      <div class="delete-modal">
+        <div class="delete-modal-title">⚠ Eliminar ${checkedBoxes.length} llamada${checkedBoxes.length !== 1 ? 's' : ''}</div>
+        <div class="delete-modal-desc">
+          ¿Estás seguro que querés eliminar ${checkedBoxes.length} llamada${checkedBoxes.length !== 1 ? 's' : ''}?<br><br>
+          Esta acción no se puede deshacer.
+        </div>
+        <div class="delete-modal-actions">
+          <button class="delete-btn-cancel" id="delMultiCancel">Cancelar</button>
+          <button class="delete-btn-confirm" id="delMultiConfirm">Eliminar</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    const closeModal = () => document.getElementById('deleteMultiOverlay')?.remove();
+
+    document.getElementById('delMultiCancel').onclick = closeModal;
+    document.getElementById('delMultiConfirm').onclick = () => {
+      performDeleteMultiple();
+      closeModal();
+    };
+    overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+    document.getElementById('delMultiCancel').focus();
+  }
+
+  function performDeleteMultiple() {
+    const checkedBoxes = Array.from(document.querySelectorAll('.call-item-checkbox:checked'));
+    const idsToDelete = checkedBoxes.map(cb => Number(cb.dataset.callId));
+
+    idsToDelete.forEach(id => {
+      const entry = panels[id];
+      if (entry) {
+        entry.li.remove();
+        entry.panel.remove();
+        delete panels[id];
+      }
+    });
+
+    const remaining = Object.keys(panels);
+    if (remaining.length > 0) {
+      selectCall(Number(remaining[remaining.length - 1]));
+    } else {
+      activeId = null;
+      emptyState.classList.add('show');
+    }
+
+    updateExportBtn();
+    saveToStorage();
+    toggleSelectionMode(); // Salir del modo selección
+    toast(`${idsToDelete.length} llamada${idsToDelete.length !== 1 ? 's' : ''} eliminada${idsToDelete.length !== 1 ? 's' : ''}`, 'ok');
+  }
+
   // ── Init ──────────────────────────────────────────────────────────────
   btnAdd.addEventListener('click', () => { addCall(); updateExportBtn(); });
   document.getElementById('sidebarToggle')?.addEventListener('click', toggleSidebar);
+
+  // Listeners para modo selección múltiple
+  document.getElementById('btnSelectMode')?.addEventListener('click', toggleSelectionMode);
+  document.getElementById('btnDeleteMulti')?.addEventListener('click', deleteMultipleConfirm);
+  document.getElementById('btnDeselectAll')?.addEventListener('click', () => {
+    document.querySelectorAll('.call-item-checkbox').forEach(cb => { cb.checked = false; });
+    updateSelectionInfo();
+  });
 
   // Listener para búsqueda de llamadas
   const searchInput = document.getElementById('searchInput');
