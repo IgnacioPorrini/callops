@@ -1700,7 +1700,7 @@
     const toggle = document.getElementById('sidebarToggle');
     if (!sidebar || !toggle) return;
     const collapsed = sidebar.classList.toggle('collapsed');
-    toggle.textContent = collapsed ? '❮' : '❯';
+    toggle.textContent = collapsed ? '❯' : '❮';
     localStorage.setItem(SIDEBAR_COLLAPSED_KEY, collapsed ? 'true' : 'false');
 
     // Reapllicar filtro de búsqueda al expandir para mostrar nuevamente los filtrados
@@ -2145,7 +2145,7 @@
   const sidebar = document.getElementById('sidebar');
   if (sidebarCollapsed && sidebar) {
     sidebar.classList.add('collapsed');
-    document.getElementById('sidebarToggle').textContent = '❮';
+    document.getElementById('sidebarToggle').textContent = '❯';
   }
 
   checkURLParams();
