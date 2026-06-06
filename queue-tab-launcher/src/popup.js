@@ -1,5 +1,5 @@
 /**
- * popup.js — Queue Tab Launcher v1.6.0
+ * popup.js — Queue Tab Launcher v1.8.0
  * @author Ignacio
  * @built-with Claude Sonnet 4.6 (Anthropic)
  */

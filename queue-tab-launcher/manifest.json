@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Queue Tab Launcher",
-  "version": "1.6.0",
+  "version": "1.8.0",
   "description": "Detecta colas de llamadas entrantes y abre automáticamente las pestañas de trabajo configuradas.",
   "author": "Ignacio",
   "permissions": [

@@ -1,5 +1,5 @@
 /**
- * background.js — Queue Tab Launcher v1.6.0
+ * background.js — Queue Tab Launcher v1.8.0
  * Service Worker: detecta colas, muestra banner, abre pestañas.
  * Integración Call Notes: inyecta datos de llamada (cola, teléfono, nombre).
  *

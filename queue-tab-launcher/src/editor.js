@@ -1,5 +1,5 @@
 /**
- * editor.js — Queue Tab Launcher v1.5.0
+ * editor.js — Queue Tab Launcher v1.8.0
  * Página completa de edición de colas y pestañas.
  *
  * @author Ignacio
