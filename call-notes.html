@@ -104,8 +104,8 @@
       border-radius: 5px;
       background: var(--surface2);
       color: var(--text);
-      font-family: var(--sans);
-      font-size: 13px;
+      font-family: var(--mono);
+      font-size: 12px;
       transition: all 0.15s;
     }
     .sidebar-search input:focus {
@@ -659,7 +659,7 @@
       border-radius: var(--radius);
       color: var(--text3);
       font-family: var(--mono);
-      font-size: 10px;
+      font-size: 11px;
       cursor: pointer;
       transition: all 0.15s;
       letter-spacing: 0.04em;
@@ -677,6 +677,37 @@
     }
 
     .btn-export:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    /* ── Delete all button ── */
+    .btn-delete-all {
+      width: 100%;
+      padding: 8px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text3);
+      font-family: var(--mono);
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.15s;
+      letter-spacing: 0.04em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .btn-delete-all:hover {
+      border-color: var(--red);
+      color: var(--red);
+      background: rgba(220, 38, 38, 0.06);
+    }
+
+    .btn-delete-all:disabled {
       opacity: 0.3;
       cursor: not-allowed;
     }
@@ -1121,6 +1152,9 @@
       </button>
       <button class="btn-export" id="btnExport" disabled>
         ↓ Exportar sesión
+      </button>
+      <button class="btn-delete-all" id="btnDeleteAll" disabled>
+        ✕ Eliminar todo
       </button>
       <a class="sidebar-credit" href="https://ignacioporrini.github.io/" target="_blank">✦ Ignacio Porrini</a>
     </div>
@@ -1716,6 +1750,63 @@
     showDeleteConfirmModal(id);
   }
 
+  function showDeleteAllModal() {
+    const count = Object.keys(panels).length;
+    if (count === 0) return;
+
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.id = 'deleteAllOverlay';
+
+    overlay.innerHTML = `
+      <div class="delete-modal">
+        <div class="delete-modal-title">⚠ Eliminar sesión</div>
+        <div class="delete-modal-desc">
+          ¿Estás seguro que querés eliminar <strong>todas las ${count} llamada${count !== 1 ? 's' : ''}</strong> de la sesión?<br><br>
+          Esta acción no se puede deshacer.
+        </div>
+        <div class="delete-modal-actions">
+          <button class="delete-btn-cancel" id="delAllCancel">Cancelar</button>
+          <button class="delete-btn-confirm" id="delAllConfirm">Eliminar todo</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    const closeModal = () => document.getElementById('deleteAllOverlay')?.remove();
+
+    const closingModal = () => {
+      document.activeElement?.blur();
+      closeModal();
+    };
+
+    document.getElementById('delAllCancel').onclick = closingModal;
+    document.getElementById('delAllConfirm').onclick = () => {
+      performDeleteAll();
+      closingModal();
+    };
+    overlay.addEventListener('click', e => { if (e.target === overlay) closingModal(); });
+
+    document.getElementById('delAllCancel').focus();
+  }
+
+  function performDeleteAll() {
+    Object.values(panels).forEach(entry => {
+      entry.li?.remove();
+      entry.panel?.remove();
+    });
+    Object.keys(panels).forEach(k => delete panels[k]);
+    activeId = null;
+    counter = 0;
+
+    emptyState.classList.add('show');
+    updateExportBtn();
+    updateDots();
+    saveToStorage();
+    toast('Sesión eliminada', 'ok');
+  }
+
   // ── Copy functions ────────────────────────────────────────────────────
   function copyFull(id) {
     const label   = document.getElementById(`select-${id}`).value;
@@ -1909,9 +2000,14 @@
 
   btnExport.addEventListener('click', showExportModal);
 
-  // Enable export button when there are calls
+  const btnDeleteAll = document.getElementById('btnDeleteAll');
+  btnDeleteAll.addEventListener('click', showDeleteAllModal);
+
+  // Enable export/delete-all buttons when there are calls
   function updateExportBtn() {
-    btnExport.disabled = Object.keys(panels).length === 0;
+    const hasCalls = Object.keys(panels).length > 0;
+    btnExport.disabled = !hasCalls;
+    btnDeleteAll.disabled = !hasCalls;
   }
 
   // ── Init ──────────────────────────────────────────────────────────────
