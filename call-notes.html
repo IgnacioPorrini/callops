@@ -313,15 +313,15 @@
       cursor: pointer;
       text-align: left;
       transition: all 0.15s;
-      display: none;
-    }
-
-    .sidebar-header-select.show {
       display: block;
     }
 
     .sidebar-header-select:hover {
       background: var(--surface2);
+    }
+
+    .sidebar.collapsed .sidebar-header-select {
+      display: none;
     }
 
     .sidebar-selection-bar {
@@ -2033,13 +2033,13 @@
     const isSelecting = sidebar.classList.toggle('selection-mode');
     const btnSelectMode = document.getElementById('btnSelectMode');
     const selectionBar = document.getElementById('selectionBar');
-    const callItems = document.querySelectorAll('.call-item');
 
-    btnSelectMode.classList.toggle('show', isSelecting);
+    // Cambiar texto del botón según estado
+    btnSelectMode.textContent = isSelecting ? '✕ Cancelar' : '☑ Seleccionar';
     selectionBar.classList.toggle('show', isSelecting);
 
     if (!isSelecting) {
-      // Desactivar selección: deseleccionar todas y ocultar checkboxes
+      // Desactivar selección: deseleccionar todas
       document.querySelectorAll('.call-item-checkbox').forEach(cb => { cb.checked = false; });
     }
     updateSelectionInfo();
