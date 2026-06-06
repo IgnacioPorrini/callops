@@ -675,6 +675,18 @@
       cursor: not-allowed;
     }
 
+    /* Modals */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(28,32,51,0.25);
+      z-index: 99999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: fadein 0.15s ease;
+    }
+
     /* Export modal */
     .export-modal-overlay {
       position: fixed;
@@ -786,6 +798,78 @@
       font-family: var(--mono);
       font-size: 11px;
       cursor: pointer;
+      transition: color 0.15s;
+    }
+
+    /* Delete confirmation modal */
+    .delete-modal {
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      border-radius: 12px;
+      padding: 24px;
+      width: 320px;
+      box-shadow: 0 8px 32px rgba(28,32,51,0.14);
+    }
+
+    .delete-modal-title {
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--red);
+      margin-bottom: 4px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .delete-modal-desc {
+      font-size: 13px;
+      color: var(--text);
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .delete-modal-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .delete-btn-cancel,
+    .delete-btn-confirm {
+      flex: 1;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: var(--sans);
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+
+    .delete-btn-cancel {
+      background: var(--surface2);
+      color: var(--text2);
+    }
+
+    .delete-btn-cancel:hover {
+      background: var(--surface3);
+      border-color: var(--border2);
+    }
+
+    .delete-btn-confirm {
+      background: var(--red);
+      color: white;
+      border-color: var(--red);
+    }
+
+    .delete-btn-confirm:hover {
+      background: #b91c1c;
+      border-color: #b91c1c;
+    }
+
+    .delete-btn-confirm:active {
+      transform: scale(0.98);
+    }
       transition: color 0.15s;
     }
 
@@ -1558,7 +1642,42 @@
   }
 
   // ── Remove call ───────────────────────────────────────────────────────
-  function removeCall(id) {
+  function showDeleteConfirmModal(id) {
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.id = 'deleteOverlay';
+
+    const phone = document.getElementById(`f-phone-${id}`)?.value || 'esta llamada';
+    const name = document.getElementById(`f-name-${id}`)?.value;
+    const displayName = name || phone;
+
+    overlay.innerHTML = `
+      <div class="delete-modal">
+        <div class="delete-modal-title">⚠ Eliminar llamada</div>
+        <div class="delete-modal-desc">
+          ¿Estás seguro que querés eliminar la llamada de<br><strong>${displayName}</strong>?<br><br>
+          Esta acción no se puede deshacer.
+        </div>
+        <div class="delete-modal-actions">
+          <button class="delete-btn-cancel" id="delCancel">Cancelar</button>
+          <button class="delete-btn-confirm" id="delConfirm">Eliminar</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    const closeModal = () => document.getElementById('deleteOverlay')?.remove();
+
+    document.getElementById('delCancel').onclick = closeModal;
+    document.getElementById('delConfirm').onclick = () => {
+      performDelete(id);
+      closeModal();
+    };
+    overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+  }
+
+  function performDelete(id) {
     const entry = panels[id];
     if (!entry) return;
     entry.li.remove();
@@ -1574,6 +1693,11 @@
     }
     updateExportBtn();
     saveToStorage();
+    toast(`Llamada eliminada`, 'ok');
+  }
+
+  function removeCall(id) {
+    showDeleteConfirmModal(id);
   }
 
   // ── Copy functions ────────────────────────────────────────────────────
