@@ -17,7 +17,6 @@ const chevQueues     = document.getElementById("chevQueues");
 const chevSelectors  = document.getElementById("chevSelectors");
 const btnCallNotes   = document.getElementById("btnCallNotes");
 const btnVerify      = document.getElementById("btnVerify");
-const btnReconfig    = document.getElementById("btnReconfig");
 const btnClear       = document.getElementById("btnClear");
 const btnManualTrigger   = document.getElementById("btnManualTrigger");
 const btnExportConfig    = document.getElementById("btnExportConfig");
@@ -518,14 +517,23 @@ btnVerify.addEventListener("click", async () => {
   }, 2500);
 });
 
-// ── Reconfig ──────────────────────────────────────────────────────────
-btnReconfig.addEventListener("click", () => {
-  showSetupView();
-  appendLog("warn", "Modo reconfiguración activo.");
-});
-
-// ── Clear ─────────────────────────────────────────────────────────────
+// ── Clear (con confirmación en dos pasos) ─────────────────────────────
+let clearConfirmTimer = null;
 btnClear.addEventListener("click", async () => {
+  if (!btnClear.classList.contains("confirming")) {
+    // Primer clic: pedir confirmación
+    btnClear.classList.add("confirming");
+    btnClear.textContent = "¿Seguro?";
+    clearConfirmTimer = setTimeout(() => {
+      btnClear.classList.remove("confirming");
+      btnClear.textContent = "✕";
+    }, 2500);
+    return;
+  }
+  // Segundo clic: ejecutar
+  clearTimeout(clearConfirmTimer);
+  btnClear.classList.remove("confirming");
+  btnClear.textContent = "✕";
   await chrome.storage.local.remove("config");
   statusDot.className = "status-dot";
   showSetupView();
