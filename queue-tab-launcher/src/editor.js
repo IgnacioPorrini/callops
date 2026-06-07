@@ -166,7 +166,7 @@ document.getElementById("btnSave").addEventListener("click", async () => {
   if (!savedConfig) { showToast("Sin configuración base", "err"); return; }
 
   const newQueues = [];
-  document.querySelectorAll("#queueList .queue-card").forEach((card, idx) => {
+  document.querySelectorAll("#queueList .queue-card").forEach(card => {
     const name = card.querySelector(".queue-name-input")?.value.trim();
     if (!name) return;
 
@@ -190,8 +190,14 @@ document.getElementById("btnSave").addEventListener("click", async () => {
 
   if (!newQueues.length) { showToast("Agregá al menos una cola con URL", "err"); return; }
 
-  savedConfig.queues = newQueues;
-  await chrome.storage.local.set({ config: savedConfig });
+  // Leer config ACTUAL de storage para no pisar cambios hechos desde el popup
+  // (selectores, call_notes_url, etc. pueden haber cambiado desde que se abrió el editor)
+  const { config: latestConfig } = await chrome.storage.local.get("config");
+  const baseConfig = latestConfig || savedConfig;
+  baseConfig.queues = newQueues;
+  savedConfig = { ...baseConfig }; // Actualizar referencia local
+
+  await chrome.storage.local.set({ config: baseConfig });
 
   const btn = document.getElementById("btnSave");
   btn.textContent = "✓ Guardado";
