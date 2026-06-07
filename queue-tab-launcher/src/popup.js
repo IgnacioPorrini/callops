@@ -21,7 +21,6 @@ const btnReconfig    = document.getElementById("btnReconfig");
 const btnClear       = document.getElementById("btnClear");
 const btnManualTrigger   = document.getElementById("btnManualTrigger");
 const btnExportConfig    = document.getElementById("btnExportConfig");
-const btnEditQueues      = document.getElementById("btnEditQueues");
 const queueSearch        = document.getElementById("queueSearch");
 const queueSearchClear   = document.getElementById("queueSearchClear");
 const queueSearchEmpty   = document.getElementById("queueSearchEmpty");
@@ -637,12 +636,10 @@ btnManualTrigger.addEventListener("click", async () => {
 });
 
 // ── Editor de colas (pestaña completa) ───────────────────────────────
-const openEditor = () => {
+document.getElementById("btnEditQueuesInline").addEventListener("click", () => {
   chrome.tabs.create({ url: chrome.runtime.getURL("editor.html") });
   window.close();
-};
-btnEditQueues.addEventListener("click", openEditor);
-document.getElementById("btnEditQueuesInline").addEventListener("click", openEditor);
+});
 
 // ── Log system ────────────────────────────────────────────────────────
 const MAX_LOGS = 20;
