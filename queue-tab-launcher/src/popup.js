@@ -637,10 +637,12 @@ btnManualTrigger.addEventListener("click", async () => {
 });
 
 // ── Editor de colas (pestaña completa) ───────────────────────────────
-btnEditQueues.addEventListener("click", () => {
+const openEditor = () => {
   chrome.tabs.create({ url: chrome.runtime.getURL("editor.html") });
   window.close();
-});
+};
+btnEditQueues.addEventListener("click", openEditor);
+document.getElementById("btnEditQueuesInline").addEventListener("click", openEditor);
 
 // ── Log system ────────────────────────────────────────────────────────
 const MAX_LOGS = 20;
