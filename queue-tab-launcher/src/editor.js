@@ -53,6 +53,26 @@ function createQueueCard(q = {}, num = 1) {
   nameInput.value = q.name || "";
   nameInput.placeholder = "Nombre de la cola";
 
+  const moveUp = document.createElement("button");
+  moveUp.type = "button";
+  moveUp.className = "move-btn";
+  moveUp.title = "Mover arriba";
+  moveUp.textContent = "↑";
+  moveUp.addEventListener("click", () => {
+    const prev = card.previousElementSibling;
+    if (prev) { card.parentNode.insertBefore(card, prev); renumber(); }
+  });
+
+  const moveDown = document.createElement("button");
+  moveDown.type = "button";
+  moveDown.className = "move-btn";
+  moveDown.title = "Mover abajo";
+  moveDown.textContent = "↓";
+  moveDown.addEventListener("click", () => {
+    const next = card.nextElementSibling;
+    if (next) { card.parentNode.insertBefore(next, card); renumber(); }
+  });
+
   const delBtn = document.createElement("button");
   delBtn.type = "button";
   delBtn.className = "del-queue-btn";
@@ -64,7 +84,7 @@ function createQueueCard(q = {}, num = 1) {
     renumber();
   });
 
-  header.append(numEl, nameInput, delBtn);
+  header.append(numEl, nameInput, moveUp, moveDown, delBtn);
 
   // ── Body ──
   const body = document.createElement("div");
@@ -162,8 +182,8 @@ document.getElementById("btnSave").addEventListener("click", async () => {
     });
 
     const entry = { name, tabs };
-    // Preservar campaign si existía en la config original
-    const oldQ = (savedConfig.queues || [])[idx];
+    // Preservar campaign buscando por nombre (no por índice, permite reordenar)
+    const oldQ = (savedConfig.queues || []).find(q => q.name === name);
     if (oldQ?.campaign) entry.campaign = oldQ.campaign;
     newQueues.push(entry);
   });

@@ -153,6 +153,22 @@
     .queue-name-input:focus { border-bottom-color: var(--accent2); }
     .queue-name-input::placeholder { color: var(--muted); font-weight: 400; }
 
+    .move-btn {
+      width: 26px; height: 26px;
+      padding: 0;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 12px;
+      cursor: pointer;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s;
+    }
+    .move-btn:hover { color: var(--accent2); border-color: var(--accent2); background: rgba(123,97,255,0.08); }
+
     .del-queue-btn {
       padding: 5px 12px;
       background: transparent;
@@ -164,6 +180,7 @@
       cursor: pointer;
       flex-shrink: 0;
       transition: all 0.15s;
+      margin-left: auto;
     }
     .del-queue-btn:hover { color: var(--accent); border-color: rgba(255,77,109,0.3); background: rgba(255,77,109,0.06); }
 
