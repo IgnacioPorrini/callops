@@ -165,6 +165,12 @@ function renumber() {
 document.getElementById("btnSave").addEventListener("click", async () => {
   if (!savedConfig) { showToast("Sin configuración base", "err"); return; }
 
+  // Leer config ACTUAL de storage ANTES de construir newQueues,
+  // para usar como base de lookups (campaign, title fallback) y no pisar
+  // cambios hechos desde el popup (selectores, call_notes_url, etc.)
+  const { config: latestConfig } = await chrome.storage.local.get("config");
+  const baseConfig = latestConfig || savedConfig;
+
   const newQueues = [];
   document.querySelectorAll("#queueList .queue-card").forEach(card => {
     const name = card.querySelector(".queue-name-input")?.value.trim();
@@ -177,23 +183,26 @@ document.getElementById("btnSave").addEventListener("click", async () => {
       const title  = row.querySelector(".title-input")?.value.trim() || "";
       const active = row.querySelector('input[type="checkbox"]')?.checked || false;
       const tab = { url, active };
-      if (title) tab.title = title;
+      if (title) {
+        tab.title = title;
+      } else {
+        // Fallback: si el input quedó vacío, preservar el título original por URL
+        const origQ = (baseConfig.queues || []).find(q => q.name === name);
+        const origTab = (origQ?.tabs || []).find(t => t.url === url);
+        if (origTab?.title) tab.title = origTab.title;
+      }
       tabs.push(tab);
     });
 
     const entry = { name, tabs };
     // Preservar campaign buscando por nombre (no por índice, permite reordenar)
-    const oldQ = (savedConfig.queues || []).find(q => q.name === name);
+    const oldQ = (baseConfig.queues || []).find(q => q.name === name);
     if (oldQ?.campaign) entry.campaign = oldQ.campaign;
     newQueues.push(entry);
   });
 
   if (!newQueues.length) { showToast("Agregá al menos una cola con URL", "err"); return; }
 
-  // Leer config ACTUAL de storage para no pisar cambios hechos desde el popup
-  // (selectores, call_notes_url, etc. pueden haber cambiado desde que se abrió el editor)
-  const { config: latestConfig } = await chrome.storage.local.get("config");
-  const baseConfig = latestConfig || savedConfig;
   baseConfig.queues = newQueues;
   savedConfig = { ...baseConfig }; // Actualizar referencia local
 
