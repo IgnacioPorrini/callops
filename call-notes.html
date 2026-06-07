@@ -1577,9 +1577,13 @@
     if (!providedId) {
       clearSearchFilter();
       // Auto-focus en el campo de comentario para nueva llamada
-      setTimeout(() => {
-        document.getElementById(`comment-${id}`)?.focus();
-      }, 50);
+      // Doble rAF: garantiza que el panel ya esté pintado antes de intentar el focus
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const el = document.getElementById(`comment-${id}`);
+          if (el) { el.focus(); }
+        });
+      });
     }
 
     return id;
@@ -1871,7 +1875,16 @@
     let tabs = [];
     try { tabs = JSON.parse(params.get('tabs') || '[]'); } catch {}
     if (queue || phone || name) {
-      addCall({ queue, phone, name, tabs });
+      const newId = addCall({ queue, phone, name, tabs });
+      // Si el tab fue abierto por QTL (sin user gesture), el focus() puede
+      // ser bloqueado. Lo reintentamos en el primer clic/tecla del usuario.
+      const retryFocus = () => {
+        document.getElementById(`comment-${newId}`)?.focus();
+        document.removeEventListener('click', retryFocus);
+        document.removeEventListener('keydown', retryFocus);
+      };
+      document.addEventListener('click', retryFocus, { once: true });
+      document.addEventListener('keydown', retryFocus, { once: true });
     } else if (Object.keys(panels).length === 0) {
       // Solo crear llamada vacía si no hay llamadas (ni en localStorage ni en parámetros)
       addCall();
