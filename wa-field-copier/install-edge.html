@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="es" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WA Field Copier — Instalación en Edge</title>
+  <style>
+    /* ── Tokens ─────────────────────────────────────────────────────── */
+    :root {
+      --bg:        #f5f8f5;
+      --surface:   #ffffff;
+      --border:    #d6e5d8;
+      --accent:    #25D366;
+      --accent-dk: #1aaa50;
+      --text:      #141f17;
+      --muted:     #5a7060;
+      --step-bg:   #e8f5ec;
+      --note-bg:   #fffbea;
+      --note-bd:   #f0d060;
+      --code-bg:   #eef3ef;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg:        #0e1710;
+        --surface:   #172019;
+        --border:    #273b2c;
+        --accent:    #25D366;
+        --accent-dk: #30e870;
+        --text:      #e0ece2;
+        --muted:     #7a9c82;
+        --step-bg:   #1c2e1f;
+        --note-bg:   #1f1c0b;
+        --note-bd:   #8a7020;
+        --code-bg:   #1a2a1d;
+      }
+    }
+
+    :root[data-theme="dark"] {
+      --bg:        #0e1710;
+      --surface:   #172019;
+      --border:    #273b2c;
+      --accent:    #25D366;
+      --accent-dk: #30e870;
+      --text:      #e0ece2;
+      --muted:     #7a9c82;
+      --step-bg:   #1c2e1f;
+      --note-bg:   #1f1c0b;
+      --note-bd:   #8a7020;
+      --code-bg:   #1a2a1d;
+    }
+
+    /* ── Reset ───────────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      font-size: 16px;
+      line-height: 1.65;
+      min-height: 100vh;
+    }
+
+    /* ── Top bar ─────────────────────────────────────────────────────── */
+    .topbar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .topbar-icon {
+      width: 32px;
+      height: 32px;
+      background: var(--accent);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .topbar-icon svg {
+      width: 18px;
+      height: 18px;
+      fill: white;
+    }
+
+    .topbar-name {
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: var(--text);
+    }
+
+    .topbar-sep {
+      color: var(--border);
+      font-size: 18px;
+      font-weight: 300;
+      flex-shrink: 0;
+    }
+
+    .topbar-section {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    /* ── Page layout ─────────────────────────────────────────────────── */
+    .page {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 48px 24px 80px;
+    }
+
+    /* ── Header ──────────────────────────────────────────────────────── */
+    .page-header {
+      margin-bottom: 40px;
+    }
+
+    .page-eyebrow {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent-dk);
+      margin-bottom: 10px;
+    }
+
+    h1 {
+      font-size: clamp(24px, 5vw, 32px);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+      text-wrap: balance;
+      color: var(--text);
+    }
+
+    .page-desc {
+      margin-top: 14px;
+      font-size: 15px;
+      color: var(--muted);
+      line-height: 1.6;
+      max-width: 520px;
+    }
+
+    /* ── Divider ─────────────────────────────────────────────────────── */
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 32px 0;
+    }
+
+    /* ── Steps ───────────────────────────────────────────────────────── */
+    .steps {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 44px 1fr;
+      gap: 0 16px;
+      position: relative;
+    }
+
+    /* connector line between steps */
+    .step:not(:last-child) .step-num::after {
+      content: "";
+      position: absolute;
+      top: 44px;
+      left: 21px;
+      bottom: 0;
+      width: 2px;
+      background: var(--border);
+    }
+
+    .step-num {
+      position: relative;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding-top: 2px;
+    }
+
+    .step-badge {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: var(--step-bg);
+      border: 2px solid var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      color: var(--accent-dk);
+      flex-shrink: 0;
+      z-index: 1;
+      position: relative;
+    }
+
+    .step-body {
+      padding: 4px 0 32px;
+    }
+
+    .step:last-child .step-body {
+      padding-bottom: 8px;
+    }
+
+    .step-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.3;
+      margin-bottom: 6px;
+    }
+
+    .step-text {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    code {
+      font-family: "Cascadia Code", "Consolas", "Courier New", monospace;
+      font-size: 13px;
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 6px;
+      color: var(--accent-dk);
+      white-space: nowrap;
+    }
+
+    /* ── Note ────────────────────────────────────────────────────────── */
+    .note {
+      background: var(--note-bg);
+      border: 1px solid var(--note-bd);
+      border-radius: 8px;
+      padding: 16px 18px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      margin-top: 32px;
+    }
+
+    .note-icon {
+      font-size: 16px;
+      flex-shrink: 0;
+      line-height: 1.4;
+    }
+
+    .note-text {
+      font-size: 13px;
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    .note-text strong {
+      font-weight: 600;
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    /* ── Footer ──────────────────────────────────────────────────────── */
+    .footer {
+      margin-top: 56px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .footer a {
+      color: var(--accent-dk);
+      text-decoration: none;
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
+    }
+
+    /* ── Responsive ──────────────────────────────────────────────────── */
+    @media (max-width: 480px) {
+      .page { padding: 32px 16px 60px; }
+      .topbar { padding: 0 16px; }
+    }
+
+    /* ── Focus ───────────────────────────────────────────────────────── */
+    :focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+      border-radius: 2px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="topbar-icon">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+        <path d="M12 0C5.373 0 0 5.373 0 12c0 2.112.549 4.092 1.508 5.816L0 24l6.342-1.485A11.945 11.945 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 0 1-5.007-1.372l-.36-.214-3.728.875.936-3.59-.235-.371A9.818 9.818 0 1 1 12 21.818z"/>
+      </svg>
+    </div>
+    <span class="topbar-name">WA Field Copier</span>
+    <span class="topbar-sep">/</span>
+    <span class="topbar-section">Instalación en Edge</span>
+  </div>
+
+  <main class="page">
+
+    <header class="page-header">
+      <p class="page-eyebrow">Guía de instalación</p>
+      <h1>Instalar WA Field Copier en Microsoft Edge</h1>
+      <p class="page-desc">
+        La extensión no está en la tienda de Edge, así que se instala desde los archivos directamente.
+        El proceso tarda menos de dos minutos.
+      </p>
+    </header>
+
+    <div class="divider"></div>
+
+    <section class="steps" aria-label="Pasos de instalación">
+
+      <div class="step">
+        <div class="step-num">
+          <div class="step-badge">1</div>
+        </div>
+        <div class="step-body">
+          <div class="step-title">Descargá los archivos de la extensión</div>
+          <p class="step-text">
+            Necesitás tener la carpeta <code>wa-field-copier</code> guardada en tu computadora.
+            Si la recibiste como archivo comprimido, descomprimila primero.
+          </p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">
+          <div class="step-badge">2</div>
+        </div>
+        <div class="step-body">
+          <div class="step-title">Abrí la página de extensiones</div>
+          <p class="step-text">
+            En la barra de direcciones de Edge escribí <code>edge://extensions</code> y presioná Enter.
+          </p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">
+          <div class="step-badge">3</div>
+        </div>
+        <div class="step-body">
+          <div class="step-title">Activá el modo desarrollador</div>
+          <p class="step-text">
+            En la parte inferior izquierda de la página aparece el interruptor
+            <strong>Modo de desarrollador</strong>. Activalo (se pone azul).
+          </p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">
+          <div class="step-badge">4</div>
+        </div>
+        <div class="step-body">
+          <div class="step-title">Cargá la carpeta de la extensión</div>
+          <p class="step-text">
+            Aparecen tres botones nuevos arriba a la izquierda. Hacé clic en
+            <strong>Cargar sin empaquetar</strong>. Se abre un explorador de archivos.
+          </p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">
+          <div class="step-badge">5</div>
+        </div>
+        <div class="step-body">
+          <div class="step-title">Seleccioná la carpeta wa-field-copier</div>
+          <p class="step-text">
+            Navegá hasta donde guardaste la carpeta <code>wa-field-copier</code>,
+            hacé clic sobre ella y luego en <strong>Seleccionar carpeta</strong>.
+          </p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">
+          <div class="step-badge">6</div>
+        </div>
+        <div class="step-body">
+          <div class="step-title">Verificá que quedó instalada</div>
+          <p class="step-text">
+            La extensión aparece en la lista. Asegurate de que el interruptor
+            a su derecha esté activado (azul).
+          </p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">
+          <div class="step-badge">7</div>
+        </div>
+        <div class="step-body">
+          <div class="step-title">Fijá el ícono en la barra</div>
+          <p class="step-text">
+            En la barra de Edge hacé clic en el ícono de piezas de rompecabezas (🧩),
+            buscá <em>WA Field Copier</em> y hacé clic en el pin para tenerla
+            siempre visible.
+          </p>
+        </div>
+      </div>
+
+    </section>
+
+    <div class="note" role="note">
+      <span class="note-icon">⚠</span>
+      <div class="note-text">
+        <strong>Advertencia al abrir Edge</strong>
+        Edge puede mostrar un aviso sobre extensiones de desarrollador cada vez que arranca.
+        Es normal para extensiones instaladas sin pasar por la tienda oficial.
+        Hacé clic en <strong>Mantener de todos modos</strong> para que siga activa.
+      </div>
+    </div>
+
+    <footer class="footer">
+      <span>WA Field Copier v2.1</span>
+      <a href="../call-notes.html">← Volver a Call Notes</a>
+    </footer>
+
+  </main>
+
+</body>
+</html>
