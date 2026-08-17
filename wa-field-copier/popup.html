@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>WA Field Copier</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+:root {
+  --bg: #0e1117;
+  --s1: #161b27;
+  --s2: #1e2535;
+  --s3: #242c3d;
+  --green: #25D366;
+  --green-lo: rgba(37,211,102,.12);
+  --accent: #a8ff78;
+  --yellow: #ffd166;
+  --red: #ff6b6b;
+  --red-lo: rgba(255,107,107,.1);
+  --txt: #e8edf5;
+  --dim: #7a8599;
+  --border: #252d3d;
+  --r: 9px;
+}
+* { box-sizing:border-box; margin:0; padding:0; }
+
+body {
+  width: 360px;
+  background: var(--bg);
+  color: var(--txt);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  overflow-x: hidden;
+}
+
+/* ── Header ── */
+.hdr {
+  background: var(--s1);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 12px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.logo {
+  display: flex; align-items: center; gap: 7px;
+  font-family: 'Space Mono', monospace;
+  font-size: 11px; font-weight: 700;
+  color: var(--green); letter-spacing: .05em;
+}
+.logo svg { width:18px; height:18px; }
+.tabs {
+  display: flex; gap: 2px;
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 7px; padding: 2px;
+}
+.tab {
+  background: none; border: none; color: var(--dim);
+  border-radius: 5px; padding: 4px 11px;
+  font-size: 11px; font-family: 'DM Sans', sans-serif;
+  cursor: pointer; transition: all .15s;
+}
+.tab.active { background: var(--s2); color: var(--txt); }
+
+/* ── Screens ── */
+.screen { display: none; padding: 12px; }
+.screen.visible { display: block; }
+
+/* ── USE screen ── */
+.lbl {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--dim);
+  margin-bottom: 5px;
+}
+select {
+  width: 100%;
+  background: var(--s1); border: 1px solid var(--border);
+  color: var(--txt); border-radius: var(--r);
+  padding: 8px 10px; font-size: 13px;
+  font-family: 'DM Sans', sans-serif;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%237a8599'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 10px center;
+  cursor: pointer; margin-bottom: 10px; outline: none;
+}
+select:focus { border-color: var(--green); }
+
+.preview {
+  background: var(--s1); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 10px 12px;
+  min-height: 160px; max-height: 300px;
+  overflow-y: auto; white-space: pre-wrap; word-break: break-word;
+  font-size: 12.5px; line-height: 1.65; color: var(--txt);
+  margin-bottom: 10px;
+}
+.preview.dim { color: var(--dim); font-style: italic; }
+
+.row { display: flex; gap: 7px; }
+
+.btn {
+  flex: 1; border-radius: var(--r);
+  padding: 9px 0; font-size: 12px; font-weight: 500;
+  font-family: 'DM Sans', sans-serif; cursor: pointer;
+  transition: all .2s; border: none;
+  display: flex; align-items: center; justify-content: center; gap: 5px;
+}
+.btn-ghost {
+  background: var(--s2); border: 1px solid var(--border); color: var(--txt);
+}
+.btn-ghost:hover { border-color: var(--dim); }
+.btn-primary {
+  background: var(--green); color: #000; font-weight: 600;
+}
+.btn-primary:hover { background: var(--accent); }
+.btn-primary:disabled { background: #1a5e36; color: #3a6b4a; cursor: default; }
+
+.status {
+  margin-top: 7px; font-size: 11px; text-align: center;
+  color: var(--dim); min-height: 16px;
+}
+.status.ok { color: var(--green); }
+.status.err { color: var(--red); }
+
+/* ── EDIT screen ── */
+.edit-tpl-row {
+  display: flex; align-items: center; gap: 6px; margin-bottom: 10px;
+}
+.edit-tpl-row select { margin-bottom: 0; flex: 1; }
+
+.btn-sm {
+  background: var(--s2); border: 1px solid var(--border);
+  color: var(--txt); border-radius: 7px;
+  padding: 7px 10px; font-size: 11px;
+  font-family: 'DM Sans', sans-serif; cursor: pointer;
+  white-space: nowrap; transition: all .2s;
+}
+.btn-sm:hover { border-color: var(--dim); }
+.btn-sm.green { border-color: var(--green); color: var(--green); }
+.btn-sm.green:hover { background: var(--green-lo); }
+.btn-sm.red:hover { border-color: var(--red); color: var(--red); background: var(--red-lo); }
+
+input[type=text], textarea {
+  width: 100%; background: var(--s1); border: 1px solid var(--border);
+  color: var(--txt); border-radius: var(--r);
+  padding: 8px 10px; font-size: 13px;
+  font-family: 'DM Sans', sans-serif; outline: none;
+  transition: border-color .2s;
+}
+input[type=text]:focus, textarea:focus { border-color: var(--green); }
+
+textarea {
+  min-height: 100px; resize: vertical; line-height: 1.6;
+  margin-bottom: 4px;
+}
+
+.hint {
+  font-size: 10.5px; color: var(--dim); line-height: 1.5; margin-bottom: 12px;
+}
+.hint code {
+  background: var(--s2); border-radius: 4px; padding: 1px 5px;
+  font-family: 'Space Mono', monospace; font-size: 10px; color: var(--green);
+}
+
+.section-title {
+  font-family: 'Space Mono', monospace; font-size: 9px;
+  letter-spacing: .1em; text-transform: uppercase;
+  color: var(--dim); margin: 14px 0 7px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+/* Field cards */
+.field-card {
+  background: var(--s1); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 10px; margin-bottom: 7px;
+}
+.field-row { display: flex; gap: 6px; margin-bottom: 6px; align-items: flex-end; }
+.field-row:last-child { margin-bottom: 0; }
+.field-group { display: flex; flex-direction: column; gap: 3px; flex: 1; }
+.field-lbl { font-size: 9px; color: var(--dim); font-family: 'Space Mono', monospace; letter-spacing:.05em; }
+
+.sel-row { display: flex; gap: 6px; align-items: center; }
+.sel-row input { flex: 1; min-width: 0; }
+
+.btn-capture {
+  background: var(--s2); border: 1px solid var(--border);
+  color: var(--txt); border-radius: 7px;
+  padding: 7px 10px; font-size: 11px; font-weight: 500;
+  font-family: 'DM Sans', sans-serif; cursor: pointer;
+  white-space: nowrap; transition: all .2s;
+  display: flex; align-items: center; gap: 5px;
+}
+.btn-capture:hover { border-color: var(--green); color: var(--green); }
+
+.preview-tag {
+  font-size: 10px; color: var(--dim); font-style: italic;
+  margin-top: 3px; overflow: hidden; text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.preview-tag.ok { color: var(--green); }
+
+select.mini {
+  padding: 7px 8px; font-size: 12px;
+  margin: 0; background-size: 8px;
+}
+
+.btn-del-field {
+  background: none; border: 1px solid var(--border);
+  color: var(--dim); border-radius: 7px;
+  padding: 7px 9px; cursor: pointer; font-size: 13px;
+  transition: all .2s; line-height: 1;
+}
+.btn-del-field:hover { border-color: var(--red); color: var(--red); background: var(--red-lo); }
+
+.btn-add-field {
+  width: 100%; background: transparent;
+  border: 1px dashed var(--border); color: var(--dim);
+  border-radius: var(--r); padding: 8px;
+  font-size: 12px; font-family: 'DM Sans', sans-serif;
+  cursor: pointer; transition: all .2s; margin-top: 2px;
+}
+.btn-add-field:hover { border-color: var(--green); color: var(--green); background: var(--green-lo); }
+
+.save-row {
+  border-top: 1px solid var(--border);
+  margin-top: 14px; padding-top: 12px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+/* Picker waiting state */
+.picker-banner {
+  background: var(--yellow);
+  color: #000; border-radius: var(--r);
+  padding: 10px 12px; font-size: 12px; font-weight: 500;
+  margin-bottom: 10px; display: none;
+  align-items: center; gap: 8px; line-height: 1.4;
+}
+.picker-banner.visible { display: flex; }
+.picker-banner svg { flex-shrink: 0; }
+
+/* Empty state */
+.empty {
+  text-align: center; padding: 28px 16px;
+  color: var(--dim); font-size: 12px; line-height: 1.7;
+}
+.empty strong { color: var(--green); }
+
+/* ── Export / Import row ── */
+.share-row {
+  border-top: 1px solid var(--border);
+  margin-top: 10px; padding-top: 10px;
+  display: flex; gap: 6px;
+}
+.share-row .btn-sm {
+  flex: 1; text-align: center; justify-content: center;
+  display: flex; align-items: center; gap: 5px;
+}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="logo">
+    <svg viewBox="0 0 24 24" fill="none">
+      <path d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.58 1.37 5.07L2 22l5.09-1.34A9.94 9.94 0 0012 22c5.52 0 10-4.48 10-10S17.52 2 12 2z" fill="#25D366"/>
+      <path d="M16.5 14.5c-.28-.14-1.65-.81-1.9-.9-.26-.09-.44-.14-.63.14-.19.28-.72.9-.88 1.09-.16.18-.33.2-.61.07-.28-.14-1.18-.44-2.25-1.4-.83-.74-1.39-1.66-1.56-1.94-.16-.28-.02-.43.12-.57.13-.13.28-.33.42-.5.14-.16.19-.28.28-.46.09-.18.05-.34-.02-.48-.07-.14-.63-1.52-.86-2.08-.23-.55-.46-.47-.63-.48H8.5c-.16 0-.42.06-.64.3-.22.24-.84.82-.84 2s.86 2.32.98 2.48c.12.16 1.69 2.58 4.1 3.62.57.25 1.02.4 1.37.51.58.18 1.1.16 1.51.1.46-.07 1.42-.58 1.62-1.14.2-.56.2-1.04.14-1.14-.06-.1-.22-.16-.5-.3z" fill="#fff"/>
+    </svg>
+    WA COPIER
+  </div>
+  <div class="tabs">
+    <button class="tab active" data-tab="use">Usar</button>
+    <button class="tab" data-tab="edit">Editar</button>
+  </div>
+</div>
+
+<!-- USE SCREEN -->
+<div class="screen visible" id="screen-use">
+  <div class="lbl">Plantilla</div>
+  <select id="useSelect"></select>
+
+  <div class="lbl">Mensaje generado</div>
+  <div class="preview dim" id="usePreview">Seleccioná una plantilla y hacé clic en Extraer.</div>
+
+  <div class="row">
+    <button class="btn btn-ghost" id="btnExtract">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      Extraer
+    </button>
+    <button class="btn btn-primary" id="btnCopy" disabled>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+      Copiar
+    </button>
+  </div>
+  <div class="status" id="useStatus"></div>
+</div>
+
+<!-- EDIT SCREEN -->
+<div class="screen" id="screen-edit">
+
+  <!-- Picker waiting banner -->
+  <div class="picker-banner" id="pickerBanner">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+    <div>
+      <strong>Modo captura activo</strong><br>
+      Andá a la página y hacé clic en el elemento. Después volvé acá.
+    </div>
+  </div>
+
+  <div class="edit-tpl-row">
+    <select id="editSelect"></select>
+    <button class="btn-sm green" id="btnNewTpl">+ Nueva</button>
+    <button class="btn-sm" id="btnDupTpl" title="Duplicar plantilla">⧉</button>
+    <button class="btn-sm red" id="btnDelTpl">✕</button>
+  </div>
+
+  <div id="editForm" style="display:none">
+    <div class="lbl">Nombre</div>
+    <input type="text" id="tplName" placeholder="Ej: Propiedad en alquiler" style="margin-bottom:10px">
+
+    <div class="lbl">Formato del mensaje</div>
+    <textarea id="tplFormat" placeholder="🏠 *{{titulo}}*&#10;📍 {{direccion}}&#10;🔗 {{enlace}}"></textarea>
+    <div class="hint">
+      Usá <code>{{clave}}</code> para cada campo. Soporta emojis, saltos de línea y texto fijo.
+    </div>
+
+    <div class="section-title">
+      <span>Campos a capturar</span>
+    </div>
+    <div id="fieldsList"></div>
+    <button class="btn-add-field" id="btnAddField">+ Agregar campo</button>
+
+    <div class="save-row">
+      <div class="status" id="editStatus"></div>
+      <button class="btn btn-primary" style="flex:0;padding:9px 20px" id="btnSave">Guardar</button>
+    </div>
+
+    <div class="share-row">
+      <button class="btn-sm" id="btnExport">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Exportar
+      </button>
+      <button class="btn-sm" id="btnImport">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 5 17 10"/><line x1="12" y1="5" x2="12" y2="17"/></svg>
+        Importar
+      </button>
+      <input type="file" id="importFile" accept=".json" style="display:none">
+    </div>
+  </div>
+
+  <div id="editEmpty" class="empty">
+    No hay plantillas.<br>
+    Creá una con <strong>+ Nueva</strong>.
+  </div>
+</div>
+
+<script src="popup.js"></script>
+</body>
+</html>

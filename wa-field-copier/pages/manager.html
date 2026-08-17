@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>WA Copier — Gestor de Plantillas</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,wght@0,300;0,400;0,600;1,400&display=swap');
+
+  :root {
+    --bg: #0e1117;
+    --surface: #161b27;
+    --surface2: #1e2535;
+    --surface3: #242c3d;
+    --green: #25D366;
+    --green-dim: #1a9648;
+    --accent: #a8ff78;
+    --yellow: #ffd166;
+    --red: #ff6b6b;
+    --text: #e8edf5;
+    --text-dim: #7a8599;
+    --border: #252d3d;
+    --radius: 10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .logo {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--green);
+    letter-spacing: .08em;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  .logo svg { width: 20px; height: 20px; }
+
+  header h1 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-dim);
+  }
+
+  .layout {
+    display: flex;
+    flex: 1;
+    height: calc(100vh - 53px);
+  }
+
+  /* Sidebar */
+  .sidebar {
+    width: 240px;
+    min-width: 200px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sidebar-header {
+    padding: 14px 14px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .sidebar-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  .btn-new {
+    background: var(--green);
+    border: none;
+    color: #000;
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: background .2s;
+  }
+  .btn-new:hover { background: var(--accent); }
+
+  .template-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 4px 8px 8px;
+  }
+
+  .tpl-item {
+    padding: 9px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-bottom: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: background .15s;
+    border: 1px solid transparent;
+  }
+  .tpl-item:hover { background: var(--surface2); }
+  .tpl-item.active { background: var(--surface3); border-color: var(--green); }
+
+  .tpl-item .tpl-name { font-size: 13px; font-weight: 500; }
+  .tpl-item .tpl-count { font-size: 10px; color: var(--text-dim); font-family: 'Space Mono', monospace; }
+
+  .tpl-item .tpl-del {
+    background: none; border: none; color: var(--text-dim);
+    cursor: pointer; font-size: 14px; padding: 0 2px; line-height: 1;
+    opacity: 0; transition: opacity .15s;
+  }
+  .tpl-item:hover .tpl-del { opacity: 1; }
+  .tpl-item .tpl-del:hover { color: var(--red); }
+
+  /* Editor */
+  .editor {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .editor-inner {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 28px;
+  }
+
+  .no-template {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--text-dim);
+    text-align: center;
+    gap: 10px;
+  }
+
+  .no-template .icon { font-size: 40px; }
+  .no-template p { font-size: 13px; line-height: 1.6; }
+  .no-template strong { color: var(--green); }
+
+  .section-title {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+    margin-top: 24px;
+  }
+  .section-title:first-child { margin-top: 0; }
+
+  input[type="text"], textarea, select {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: var(--radius);
+    padding: 9px 12px;
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    transition: border-color .2s;
+    outline: none;
+  }
+  input[type="text"]:focus, textarea:focus, select:focus { border-color: var(--green); }
+
+  textarea {
+    min-height: 120px;
+    resize: vertical;
+    line-height: 1.6;
+  }
+
+  .format-hint {
+    margin-top: 6px;
+    font-size: 11px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+  .format-hint code {
+    background: var(--surface2);
+    border-radius: 4px;
+    padding: 1px 5px;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--green);
+  }
+
+  /* Fields */
+  .fields-list { display: flex; flex-direction: column; gap: 8px; }
+
+  .field-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px;
+    position: relative;
+  }
+
+  .field-card-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: flex-end; }
+  .field-card-row:last-child { margin-bottom: 0; }
+
+  .field-card-row .f-label {
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-bottom: 4px;
+    font-family: 'Space Mono', monospace;
+    letter-spacing: .05em;
+  }
+
+  .field-group { display: flex; flex-direction: column; flex: 1; }
+
+  .btn-pick {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 8px;
+    padding: 9px 12px;
+    font-size: 12px;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all .2s;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .btn-pick:hover { border-color: var(--green); color: var(--green); }
+  .btn-pick.picking { border-color: var(--yellow); color: var(--yellow); animation: pulse 1s infinite; }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .5; }
+  }
+
+  .btn-del-field {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    border-radius: 8px;
+    padding: 9px 10px;
+    cursor: pointer;
+    transition: all .2s;
+    font-size: 14px;
+    line-height: 1;
+  }
+  .btn-del-field:hover { border-color: var(--red); color: var(--red); background: rgba(255,107,107,.08); }
+
+  .btn-add-field {
+    background: var(--surface2);
+    border: 1px dashed var(--border);
+    color: var(--text-dim);
+    border-radius: var(--radius);
+    padding: 10px;
+    width: 100%;
+    cursor: pointer;
+    font-size: 12px;
+    font-family: 'DM Sans', sans-serif;
+    transition: all .2s;
+    text-align: center;
+    margin-top: 4px;
+  }
+  .btn-add-field:hover { border-color: var(--green); color: var(--green); background: rgba(37,211,102,.05); }
+
+  /* Footer save bar */
+  .editor-footer {
+    padding: 12px 28px;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .save-status { font-size: 12px; color: var(--text-dim); min-width: 160px; }
+  .save-status.ok { color: var(--green); }
+  .save-status.err { color: var(--red); }
+
+  .btn-save {
+    background: var(--green);
+    border: none;
+    color: #000;
+    border-radius: var(--radius);
+    padding: 10px 24px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: background .2s;
+  }
+  .btn-save:hover { background: var(--accent); }
+
+  select.small {
+    padding: 9px 8px;
+    font-size: 12px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <svg viewBox="0 0 24 24" fill="none"><path d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.58 1.37 5.07L2 22l5.09-1.34A9.94 9.94 0 0012 22c5.52 0 10-4.48 10-10S17.52 2 12 2z" fill="#25D366"/><path d="M16.5 14.5c-.28-.14-1.65-.81-1.9-.9-.26-.09-.44-.14-.63.14-.19.28-.72.9-.88 1.09-.16.18-.33.2-.61.07-.28-.14-1.18-.44-2.25-1.4-.83-.74-1.39-1.66-1.56-1.94-.16-.28-.02-.43.12-.57.13-.13.28-.33.42-.5.14-.16.19-.28.28-.46.09-.18.05-.34-.02-.48-.07-.14-.63-1.52-.86-2.08-.23-.55-.46-.47-.63-.48H8.5c-.16 0-.42.06-.64.3-.22.24-.84.82-.84 2s.86 2.32.98 2.48c.12.16 1.69 2.58 4.1 3.62.57.25 1.02.4 1.37.51.58.18 1.1.16 1.51.1.46-.07 1.42-.58 1.62-1.14.2-.56.2-1.04.14-1.14-.06-.1-.22-.16-.5-.3z" fill="#fff"/></svg>
+    WA COPIER
+  </div>
+  <h1>Gestor de Plantillas</h1>
+</header>
+
+<div class="layout">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <span class="sidebar-label">Plantillas</span>
+      <button class="btn-new" id="btnNew">+ Nueva</button>
+    </div>
+    <div class="template-list" id="templateList"></div>
+  </div>
+
+  <!-- Editor -->
+  <div class="editor">
+    <div class="editor-inner" id="editorInner">
+      <div class="no-template">
+        <div class="icon">📋</div>
+        <p>Seleccioná una plantilla para editar<br>o creá una <strong>nueva</strong> con el botón de arriba.</p>
+      </div>
+    </div>
+    <div class="editor-footer" id="editorFooter" style="display:none">
+      <div class="save-status" id="saveStatus"></div>
+      <button class="btn-save" id="btnSave">Guardar plantilla</button>
+    </div>
+  </div>
+</div>
+
+<script src="../manager.js"></script>
+</body>
+</html>
